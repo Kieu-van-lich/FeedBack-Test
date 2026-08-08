@@ -60,6 +60,8 @@ const DEMO_IMAGES = [
 let selectedCategory = "all";
 let currentItems = [];
 let lightboxIndex = 0;
+let currentPage = 1;
+const ITEMS_PER_PAGE = 15;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -141,6 +143,7 @@ function renderCategories() {
   document.querySelectorAll(".category").forEach(card => {
     card.addEventListener("click", () => {
       selectedCategory = card.dataset.id;
+      currentPage = 1;
       renderAll();
       $("#feedback").scrollIntoView({ behavior: "smooth" });
     });
@@ -167,23 +170,58 @@ function renderGallery() {
 
   $("#galleryTitle").textContent = title || "Feedback";
 
-  $("#gallery").innerHTML = currentItems.map((item, index) => `
-    <article class="feedback-card" data-index="${index}">
+  // Pagination logic
+  const totalPages = Math.ceil(currentItems.length / ITEMS_PER_PAGE);
+  if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedItems = currentItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  $("#gallery").innerHTML = paginatedItems.map((item, index) => {
+    const globalIndex = startIndex + index;
+    return `
+    <article class="feedback-card" data-index="${globalIndex}">
       <div class="feedback-image">
         <img src="${item.src}" alt="${item.title}" loading="lazy">
       </div>
       <div class="feedback-info">
-        <span>#${String(index + 1).padStart(3, "0")}</span>
+        <span>#${String(globalIndex + 1).padStart(3, "0")}</span>
         <b>✓ VERIFIED</b>
       </div>
     </article>
-  `).join("");
+  `}).join("");
 
   $("#empty").hidden = currentItems.length !== 0;
 
   document.querySelectorAll(".feedback-card").forEach(card => {
     card.addEventListener("click", () => openLightbox(Number(card.dataset.index)));
   });
+  
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const container = $("#pagination");
+  if (!container) return;
+  if (totalPages <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">Trước</button>`;
+  
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="page-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">Sau</button>`;
+  
+  container.innerHTML = html;
+}
+
+window.changePage = function(page) {
+  currentPage = page;
+  renderGallery();
+  $("#feedback").scrollIntoView({ behavior: "smooth" });
 }
 
 function renderAll() {
@@ -233,7 +271,10 @@ $("#categoryFilter").addEventListener("change", (event) => {
   renderAll();
 });
 
-$("#searchInput").addEventListener("input", renderGallery);
+$("#searchInput").addEventListener("input", () => {
+  currentPage = 1;
+  renderGallery();
+});
 
 $(".lightbox-close").addEventListener("click", closeLightbox);
 $(".lightbox-prev").addEventListener("click", () => moveLightbox(-1));

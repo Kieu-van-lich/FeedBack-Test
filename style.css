@@ -123,3 +123,37 @@ footer{border-top:1px solid #181e25;color:#626b76;font:9px "JetBrains Mono";padd
   .guide-grid{grid-template-columns:1fr}
   .footer-inner{flex-direction:column;gap:7px}
 }
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 40px;
+}
+.page-btn {
+  background: #101419;
+  border: 1px solid #2a3039;
+  color: #aeb6bf;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: 12px "JetBrains Mono";
+  transition: all 0.2s;
+}
+.page-btn:hover {
+  border-color: #b9f34b;
+  color: #fff;
+}
+.page-btn.active {
+  background: #b9f34b;
+  color: #0b0e0a;
+  border-color: #b9f34b;
+  font-weight: 700;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #2a3039;
+  color: #aeb6bf;
+}
