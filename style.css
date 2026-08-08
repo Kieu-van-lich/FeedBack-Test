@@ -126,6 +126,7 @@ footer{border-top:1px solid #181e25;color:#626b76;font:9px "JetBrains Mono";padd
 /* Pagination */
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 10px;
