@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kho Feedback | Minh Chứng Giao Dịch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="container nav">
+    <a href="#home" class="logo">
+      <span class="logo-icon">✓</span>
+      <span class="logo-text">KHO<span>FEEDBACK</span><small>MINH CHỨNG GIAO DỊCH</small></span>
+    </a>
+
+    <nav class="menu">
+      <a href="#categories">Danh mục</a>
+      <a href="#feedback">Feedback</a>
+      <a href="#guide">Hướng dẫn</a>
+    </nav>
+
+    <a href="#feedback" class="nav-button">Xem feedback <span>↗</span></a>
+  </div>
+</header>
+
+<main id="home">
+
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="eyebrow"><i></i> GIAO DỊCH THỰC TẾ • FEEDBACK THỰC TẾ</div>
+        <h1>Khách hàng đã giao dịch.<br><em>Bạn có thể yên tâm.</em></h1>
+        <p>
+          Nơi lưu trữ những ảnh tin nhắn feedback của khách hàng theo từng dịch vụ.
+          Hãy kiểm tra các giao dịch đã hoàn tất trước khi quyết định giao dịch.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#categories" class="btn-primary">Khám phá feedback <b>→</b></a>
+          <a href="#guide" class="btn-outline">Cách xem</a>
+        </div>
+
+        <div class="stats">
+          <div><strong id="totalFeedback">141+</strong><span>Feedback</span></div>
+          <div><strong>05</strong><span>Dịch vụ</span></div>
+          <div><strong>100%</strong><span>Giao dịch hoàn tất</span></div>
+        </div>
+      </div>
+
+      <div class="hero-preview">
+        <div class="preview-glow"></div>
+        <div class="preview-card preview-back">
+          <img src="assets/demo/feedback-02.png" alt="Feedback demo">
+        </div>
+        <div class="preview-card preview-front">
+          <img src="assets/demo/feedback-01.png" alt="Feedback demo">
+        </div>
+        <div class="verified">
+          <span>✓</span>
+          <div><strong>ĐÃ XÁC MINH</strong><small>Feedback giao dịch</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="categories" class="section container">
+    <div class="section-title">
+      <div>
+        <div class="eyebrow"><i></i> BROWSE FEEDBACK</div>
+        <h2>Chọn dịch vụ</h2>
+      </div>
+      <p>Mỗi dịch vụ có một kho feedback riêng. Sau này có thể thêm danh mục mới.</p>
+    </div>
+
+    <div id="categoryGrid" class="category-grid"></div>
+  </section>
+
+  <section id="feedback" class="feedback-section">
+    <div class="container">
+      <div class="section-title feedback-title">
+        <div>
+          <div class="eyebrow"><i></i> CUSTOMER FEEDBACK</div>
+          <h2 id="galleryTitle">Tất cả feedback</h2>
+        </div>
+
+        <div class="filters">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="Tìm feedback...">
+          </label>
+
+          <select id="categoryFilter">
+            <option value="all">Tất cả dịch vụ</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="gallery" class="gallery"></div>
+      <div id="empty" class="empty" hidden>Chưa có feedback trong mục này.</div>
+    </div>
+  </section>
+
+  <section id="guide" class="section container">
+    <div class="section-title">
+      <div>
+        <div class="eyebrow"><i></i> HOW IT WORKS</div>
+        <h2>Cách sử dụng</h2>
+      </div>
+    </div>
+
+    <div class="guide-grid">
+      <article class="guide-card">
+        <span>01</span>
+        <div><h3>Chọn dịch vụ</h3><p>Chọn Ak Riu Thiêng, Đao Bướm, Dù Saitama, M4A1 hoặc M700.</p></div>
+      </article>
+      <article class="guide-card">
+        <span>02</span>
+        <div><h3>Xem feedback</h3><p>Click vào ảnh để mở ảnh lớn và dùng nút ← → để chuyển ảnh.</p></div>
+      </article>
+      <article class="guide-card">
+        <span>03</span>
+        <div><h3>Kiểm tra trước khi giao dịch</h3><p>Khách hàng mới có thể xem các giao dịch trước đó để tăng sự tin tưởng.</p></div>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <span>© 2026 KHO FEEDBACK</span>
+    <span>Minh bạch • Dễ kiểm tra • Dễ mở rộng</span>
+  </div>
+</footer>
+
+<div id="lightbox" class="lightbox" hidden>
+  <button class="lightbox-close" aria-label="Đóng">×</button>
+  <button class="lightbox-prev" aria-label="Ảnh trước">‹</button>
+
+  <div class="lightbox-content">
+    <img id="lightboxImage" alt="Feedback">
+    <div id="lightboxCaption"></div>
+  </div>
+
+  <button class="lightbox-next" aria-label="Ảnh sau">›</button>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
