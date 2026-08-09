@@ -18,6 +18,7 @@ const $$ = (selector) => document.querySelectorAll(selector);
 
 // 1. Initialize Admin Panel
 document.addEventListener("DOMContentLoaded", async () => {
+  setupAdminSecurity();
   setupSupabaseUI();
   await loadAdminItems();
   setupFormListeners();
@@ -25,6 +26,88 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupDatabaseSync();
   renderAllAdmin();
 });
+
+// Admin Security PIN Lock Management
+function getAdminPin() {
+  return localStorage.getItem("admin_pin_code") || "1234";
+}
+
+function setupAdminSecurity() {
+  const overlay = $("#adminLockOverlay");
+  const authForm = $("#pinAuthForm");
+  const pinInput = $("#pinAuthInput");
+  const errorMsg = $("#pinErrorMessage");
+  const lockBtn = $("#lockAdminBtn");
+  const changePinForm = $("#changePinForm");
+
+  // Check Session Authentication Status
+  const isAuthenticated = sessionStorage.getItem("admin_auth_session") === "true";
+
+  if (!isAuthenticated && overlay) {
+    overlay.style.display = "flex";
+    if (pinInput) setTimeout(() => pinInput.focus(), 100);
+  } else if (overlay) {
+    overlay.style.display = "none";
+  }
+
+  // PIN Login Form Submission
+  if (authForm) {
+    authForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const entered = pinInput.value.trim();
+      const correctPin = getAdminPin();
+
+      if (entered === correctPin) {
+        sessionStorage.setItem("admin_auth_session", "true");
+        if (overlay) overlay.style.display = "none";
+        if (errorMsg) errorMsg.style.display = "none";
+        pinInput.value = "";
+        showToast("⚡ Đăng nhập quyền Admin thành công!");
+      } else {
+        if (errorMsg) errorMsg.style.display = "block";
+        pinInput.value = "";
+        pinInput.focus();
+      }
+    });
+  }
+
+  // Lock Admin Button
+  if (lockBtn) {
+    lockBtn.addEventListener("click", () => {
+      sessionStorage.removeItem("admin_auth_session");
+      if (overlay) {
+        overlay.style.display = "flex";
+        if (pinInput) pinInput.focus();
+      }
+      showToast("🔒 Đã khóa trang Admin!");
+    });
+  }
+
+  // Change PIN Form Submission
+  if (changePinForm) {
+    changePinForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const currentPin = $("#currentPinInput").value.trim();
+      const newPin = $("#newPinInput").value.trim();
+      const activePin = getAdminPin();
+
+      if (currentPin !== activePin) {
+        showToast("❌ Mã PIN hiện tại không đúng!");
+        return;
+      }
+
+      if (newPin.length < 4) {
+        showToast("❌ Mã PIN mới phải có ít nhất 4 ký tự!");
+        return;
+      }
+
+      localStorage.setItem("admin_pin_code", newPin);
+      $("#currentPinInput").value = "";
+      $("#newPinInput").value = "";
+      showToast("🔑 Đã đổi mã PIN Admin thành công!");
+    });
+  }
+}
 
 // 2. Load Combined Items (Supabase OR data.js + custom localStorage)
 async function loadAdminItems() {

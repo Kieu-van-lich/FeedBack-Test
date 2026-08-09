@@ -459,6 +459,14 @@
       </div>
 
       <div class="nav-right" style="display: flex; gap: 12px; align-items: center;">
+        <button id="lockAdminBtn" class="nav-button" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>🔒 Khóa Admin</span>
+        </button>
+
         <a href="index.html" class="nav-button"
           style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-medium);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -471,6 +479,39 @@
       </div>
     </div>
   </header>
+
+  <!-- ADMIN SECURITY LOCK MODAL OVERLAY -->
+  <div id="adminLockOverlay" style="position: fixed; inset: 0; background: rgba(7, 9, 14, 0.96); backdrop-filter: blur(25px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-surface-elevated); border: 1px solid var(--accent-primary); border-radius: var(--radius-lg); padding: 36px 32px; width: min(440px, 100%); box-shadow: 0 20px 50px rgba(0,0,0,0.8); text-align: center; position: relative; overflow: hidden;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(185, 243, 75, 0.12); color: var(--accent-primary); border: 1px solid rgba(185, 243, 75, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Xác Thực Quyền Admin</h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">Vui lòng nhập Mã PIN Bảo Mật (Mã mặc định: <strong style="color: var(--accent-primary);">1234</strong>) để truy cập trang quản trị.</p>
+
+      <form id="pinAuthForm">
+        <div style="margin-bottom: 20px;">
+          <input type="password" id="pinAuthInput" maxlength="20" class="form-input" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px; font-family: var(--font-mono); height: 54px; background: rgba(0,0,0,0.4); border-color: rgba(185, 243, 75, 0.4);" placeholder="••••" required autofocus />
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; height: 48px; font-size: 1rem;">
+          <span>⚡ Đăng Nhập Admin</span>
+        </button>
+      </form>
+
+      <div id="pinErrorMessage" style="color: #ef4444; font-size: 0.85rem; font-weight: 600; margin-top: 14px; display: none;">
+        ❌ Mã PIN không chính xác! Vui lòng thử lại.
+      </div>
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+        <a href="index.html" style="font-size: 0.82rem; color: var(--text-muted); text-decoration: underline;">Quay lại trang chủ website</a>
+      </div>
+    </div>
+  </div>
 
   <!-- Admin Main Container -->
   <main class="admin-container">
@@ -755,6 +796,34 @@ CREATE POLICY "Public Storage Select" ON storage.objects FOR SELECT USING (bucke
 CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'feedback-images');
         </pre>
           </details>
+        </div>
+
+        <!-- Admin Security PIN Settings Card -->
+        <div class="admin-panel" style="margin-top: 24px; border-color: rgba(239, 68, 68, 0.3); background: rgba(14, 18, 25, 0.85);">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span style="color: #ef4444;">Bảo Mật & Đổi Mã PIN Admin</span>
+            </h2>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Khóa truy cập trái phép</span>
+          </div>
+
+          <form id="changePinForm" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end;">
+            <div>
+              <label class="form-label">Mã PIN Hiện Tại *</label>
+              <input type="password" id="currentPinInput" class="form-input" placeholder="Mã PIN cũ (mặc định: 1234)" required />
+            </div>
+            <div>
+              <label class="form-label">Mã PIN Mới *</label>
+              <input type="password" id="newPinInput" class="form-input" placeholder="Nhập mã PIN mới..." required />
+            </div>
+            <button type="submit" class="btn btn-outline" style="height: 44px; border-color: rgba(239,68,68,0.5); color: #ef4444;">
+              🔑 Đổi Mã PIN
+            </button>
+          </form>
         </div>
 
         <!-- Database Sync Bar -->
