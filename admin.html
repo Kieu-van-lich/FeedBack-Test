@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Quản Trị Admin | Kho Feedback Uy Tín</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Admin Specific Styling Extensions */
+    .admin-body {
+      background-color: var(--bg-main);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    .admin-nav-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: rgba(185, 243, 75, 0.15);
+      color: var(--accent-primary);
+      border: 1px solid rgba(185, 243, 75, 0.3);
+      font-family: var(--font-mono);
+    }
+
+    .admin-container {
+      width: min(1300px, calc(100% - 40px));
+      margin-inline: auto;
+      padding-top: 100px;
+    }
+
+    .admin-header-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .admin-title-group h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-title-group p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    /* Admin Stats Grid */
+    .admin-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition-normal);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-medium);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .stat-card-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .stat-card-badge {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent-primary);
+    }
+
+    /* Admin Main Grid (Form + List) */
+    .admin-content-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 1024px) {
+      .admin-content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .admin-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text-main);
+      font-size: 0.92rem;
+      transition: all var(--transition-fast);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      background: rgba(185, 243, 75, 0.03);
+      box-shadow: 0 0 0 3px rgba(185, 243, 75, 0.15);
+    }
+
+    /* Dropzone Upload */
+    .upload-dropzone {
+      border: 2px dashed rgba(185, 243, 75, 0.3);
+      border-radius: var(--radius-md);
+      padding: 24px 16px;
+      text-align: center;
+      background: rgba(185, 243, 75, 0.02);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .upload-dropzone:hover,
+    .upload-dropzone.dragover {
+      border-color: var(--accent-primary);
+      background: rgba(185, 243, 75, 0.08);
+    }
+
+    .upload-dropzone svg {
+      color: var(--accent-primary);
+      margin-bottom: 10px;
+    }
+
+    .upload-preview {
+      margin-top: 14px;
+      max-height: 200px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-medium);
+      display: none;
+      position: relative;
+    }
+
+    .upload-preview img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .remove-preview-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #ff4757;
+      border: 1px solid rgba(255, 71, 87, 0.4);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Feedback Items Table & List */
+    .admin-table-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .admin-search-box {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .admin-search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.9rem;
+    }
+
+    .admin-search-box svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .feedback-table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .admin-table th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .admin-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+    }
+
+    .admin-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .thumb-preview {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      border: 1px solid var(--border-medium);
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+    }
+
+    .thumb-preview:hover {
+      transform: scale(1.15);
+      border-color: var(--accent-primary);
+    }
+
+    .action-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-medium);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-icon.danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    .btn-icon.edit:hover {
+      background: rgba(0, 240, 255, 0.2);
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    /* Database Sync Bar */
+    .db-sync-bar {
+      margin-top: 32px;
+      background: linear-gradient(135deg, rgba(14, 18, 25, 0.9), rgba(21, 27, 36, 0.95));
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .db-sync-info h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .db-sync-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .db-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Toast Notification */
+    .admin-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--accent-primary);
+      color: var(--text-main);
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all var(--transition-bounce);
+    }
+
+    .admin-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .admin-toast-icon {
+      color: var(--accent-primary);
+    }
+  </style>
+</head>
+
+<body class="admin-body">
+
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow glow-top"></div>
+  <div class="ambient-glow glow-middle"></div>
+  <div class="ambient-grid"></div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="container nav">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </span>
+        <span class="logo-text">
+          <span>KHO<strong>FEEDBACK</strong></span>
+          <small>HỆ THỐNG QUẢN TRỊ</small>
+        </span>
+      </a>
+
+      <div class="admin-nav-badge">
+        <span class="pulse-dot"></span>
+        DATABASE ONLINE
+      </div>
+
+      <div class="nav-right" style="display: flex; gap: 12px; align-items: center;">
+        <a href="index.html" class="nav-button"
+          style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-medium);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Về trang chủ</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Admin Main Container -->
+  <main class="admin-container">
+
+    <!-- Header Section -->
+    <div class="admin-header-title">
+      <div class="admin-title-group">
+        <h1>
+          <span>⚡ Bảng Quản Trị Feedback</span>
+          <span
+            style="font-size: 0.9rem; font-weight: 500; color: var(--accent-primary); background: rgba(185, 243, 75, 0.1); padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid rgba(185, 243, 75, 0.3);">
+            V1.0 Live System
+          </span>
+        </h1>
+        <p>Thêm mới, chỉnh sửa, xóa và xuất dữ liệu feedback giao dịch khách hàng một cách nhanh chóng.</p>
+      </div>
+
+      <div class="admin-header-actions" style="display: flex; gap: 10px;">
+        <button id="exportJsBtn" class="btn btn-outline" style="font-size: 0.85rem; padding: 10px 16px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Xuất file data.js
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="admin-stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-title">Tổng Feedback</div>
+        <div class="stat-card-value" id="statTotal">0</div>
+        <div class="stat-card-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">M4A1 Battle</div>
+        <div class="stat-card-value" id="statM4" style="color: #ff3366;">0</div>
+        <div class="stat-card-badge" style="color: #ff3366;">🔥</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">AK Rìu Thiêng</div>
+        <div class="stat-card-value" id="statAk" style="color: #f59e0b;">0</div>
+        <div class="stat-card-badge" style="color: #f59e0b;">⚡</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">Đao Bướm</div>
+        <div class="stat-card-value" id="statDao" style="color: #a855f7;">0</div>
+        <div class="stat-card-badge" style="color: #a855f7;">🗡️</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">Dù Saitama</div>
+        <div class="stat-card-value" id="statDu" style="color: #00f0ff;">0</div>
+        <div class="stat-card-badge" style="color: #00f0ff;">🪂</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-title">M700 Elizabeth</div>
+        <div class="stat-card-value" id="statM700" style="color: #10b981;">0</div>
+        <div class="stat-card-badge" style="color: #10b981;">🎯</div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="admin-content-grid">
+
+      <!-- Panel Add New Feedback Form -->
+      <div class="admin-panel">
+        <div class="panel-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)"
+              stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span id="formTitle">Thêm Feedback Mới</span>
+          </h2>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Tải ảnh & lưu</span>
+        </div>
+
+        <form id="addFeedbackForm">
+          <input type="hidden" id="editItemId" value="" />
+
+          <!-- Category Selection -->
+          <div class="form-group">
+            <label class="form-label" for="categorySelect">Danh Mục Vật Phẩm / Loại *</label>
+            <select id="categorySelect" class="form-select" required>
+              <option value="M4A1 Battle of Faith">M4A1 Battle of Faith</option>
+              <option value="ak riu thiêng">AK Rìu Thiêng</option>
+              <option value="dao bướm">Đao Bướm</option>
+              <option value="dù saitama">Dù Saitama</option>
+              <option value="M700 ELIZABETH">M700 ELIZABETH</option>
+              <option value="Giao dịch chung">Khác / Giao Dịch Chung</option>
+            </select>
+          </div>
+
+          <!-- Title / Note -->
+          <div class="form-group">
+            <label class="form-label" for="titleInput">Tiêu Đề / Ghi Chú Giao Dịch</label>
+            <input type="text" id="titleInput" class="form-input" placeholder="VD: Khách chốt deal m4a1 uy tín..." />
+          </div>
+
+          <!-- Image Upload / Path -->
+          <div class="form-group">
+            <label class="form-label">Hình Ảnh Feedback *</label>
+
+            <div class="upload-dropzone" id="dropzone">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn ảnh hoặc Kéo thả
+                ảnh</p>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ JPG, PNG, WEBP (Tự động
+                lưu vào Database)</p>
+              <input type="file" id="imageFileInput" accept="image/*" style="display: none;" />
+            </div>
+
+            <div style="margin-top: 10px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">hoặc nhập
+              Đường Dẫn Ảnh / URL:</div>
+
+            <input type="text" id="imagePathInput" class="form-input" style="margin-top: 6px;"
+              placeholder="VD: pictures/ak riu thiêng/merged-image (1).jpg" />
+
+            <div class="upload-preview" id="imagePreviewContainer">
+              <img id="imagePreview" src="" alt="Preview" />
+              <button type="button" class="remove-preview-btn" id="removePreviewBtn" title="Xóa ảnh">✕</button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;" id="submitBtn">
+              <span>⚡ Lưu Feedback</span>
+            </button>
+            <button type="button" class="btn btn-outline" id="cancelEditBtn" style="display: none;">Hủy</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Panel Feedback Management List -->
+      <div class="admin-panel">
+        <div class="panel-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span>Danh Sách Feedback (<span id="tableItemCount">0</span>)</span>
+          </h2>
+
+          <button id="clearAllBtn" class="btn btn-outline"
+            style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
+            Reset về mặc định
+          </button>
+        </div>
+
+        <!-- Controls: Search & Category Filter -->
+        <div class="admin-table-controls">
+          <div class="admin-search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="adminSearchInput" placeholder="Tìm theo tên file hoặc danh mục..." />
+          </div>
+
+          <select id="adminCatFilter" class="form-select" style="width: 200px;">
+            <option value="all">Tất cả danh mục</option>
+            <option value="m4a1">M4A1 Battle</option>
+            <option value="ak">AK Rìu Thiêng</option>
+            <option value="dao">Đao Bướm</option>
+            <option value="du">Dù Saitama</option>
+            <option value="m700">M700 Elizabeth</option>
+          </select>
+        </div>
+
+        <!-- Feedback Table -->
+        <div class="feedback-table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Ảnh</th>
+                <th>Danh Mục / Tiêu Đề</th>
+                <th>Đường Dẫn / Filename</th>
+                <th style="width: 100px; text-align: right;">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody">
+              <!-- Rendered via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Database Sync Bar -->
+    <div class="db-sync-bar">
+      <div class="db-sync-info">
+        <!-- Supabase Configuration Panel -->
+        <div class="admin-panel"
+          style="margin-top: 32px; border-color: rgba(0, 240, 255, 0.3); background: rgba(14, 18, 25, 0.85);">
+          <div class="panel-header">
+            <h2>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+              <span style="color: var(--accent-cyan);">Cấu Hình Kết Nối Supabase Backend</span>
+            </h2>
+            <span id="supabaseStatusBadge" class="admin-nav-badge"
+              style="background: rgba(0,240,255,0.15); color: var(--accent-cyan); border-color: rgba(0,240,255,0.3);">
+              ⚡ CHƯA KẾT NỐI
+            </span>
+          </div>
+
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+            Nhập <strong>Project URL</strong> và <strong>Anon Key</strong> từ Supabase Dashboard của bạn để kích hoạt cơ
+            sở dữ liệu & lưu trữ hình ảnh đám mây trực tiếp.
+          </p>
+
+          <form id="supabaseConfigForm"
+            style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end;">
+            <div>
+              <label class="form-label">Supabase Project URL</label>
+              <input type="text" id="supaUrlInput" class="form-input" value="https://frnepaasslsbbmxvvhsb.supabase.co"
+                placeholder="https://your-project.supabase.co" />
+            </div>
+            <div>
+              <label class="form-label">Supabase Anon / Publishable Key</label>
+              <input type="text" id="supaKeyInput" class="form-input" value="sb_publishable_V5IaeVV24R1GmZrh09TcsQ_cD95KDn2"
+                placeholder="sb_publishable_... hoặc eyJ..." />
+            </div>
+            <button type="submit" class="btn btn-primary"
+              style="height: 44px; background: var(--accent-cyan); color: #07090e; border: none;">
+              ⚡ Lưu Cấu Hình
+            </button>
+          </form>
+
+          <!-- SQL Schema Instructions Toggle -->
+          <details
+            style="margin-top: 18px; background: rgba(255,255,255,0.02); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <summary style="cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--accent-cyan);">
+              📋 Xem mã SQL khởi tạo Table & Storage Bucket trên Supabase (Copy & Run in SQL Editor)
+            </summary>
+            <pre
+              style="margin-top: 10px; background: #000; padding: 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-primary); overflow-x: auto; white-space: pre-wrap;">
+-- 1. Tạo bảng lưu trữ Feedback
+CREATE TABLE IF NOT EXISTS feedbacks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT,
+  category TEXT NOT NULL,
+  path TEXT NOT NULL,
+  filename TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. Mở quyền đọc/ghi public
+ALTER TABLE feedbacks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Read Feedbacks" ON feedbacks FOR SELECT USING (true);
+CREATE POLICY "Public Insert Feedbacks" ON feedbacks FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Delete Feedbacks" ON feedbacks FOR DELETE USING (true);
+
+-- 3. Tạo Bucket chứa ảnh hình ảnh feedback
+INSERT INTO storage.buckets (id, name, public) VALUES ('feedback-images', 'feedback-images', true) ON CONFLICT DO NOTHING;
+CREATE POLICY "Public Storage Select" ON storage.objects FOR SELECT USING (bucket_id = 'feedback-images');
+CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'feedback-images');
+        </pre>
+          </details>
+        </div>
+
+        <!-- Database Sync Bar -->
+        <div class="db-sync-bar">
+          <div class="db-sync-info">
+            <h3>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)"
+                stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M21 19c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              </svg>
+              <span>Đồng Bộ CSDL & Quản Lý Dữ Liệu System</span>
+            </h3>
+            <p>Mọi thay đổi được lưu tức thì vào LocalStorage của trình duyệt và có thể Xuất/Nhập file CSDL JSON hoặc
+              file `data.js` bất kỳ lúc nào.</p>
+          </div>
+
+          <div class="db-actions">
+            <button id="downloadJsonBtn" class="btn btn-outline" style="font-size: 0.85rem;">
+              📥 Tải JSON Backup
+            </button>
+
+            <label for="importJsonInput" class="btn btn-outline" style="font-size: 0.85rem; cursor: pointer;">
+              📤 Nhập Backup JSON
+            </label>
+            <input type="file" id="importJsonInput" accept=".json" style="display: none;" />
+          </div>
+        </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="admin-toast" id="adminToast">
+    <div class="admin-toast-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <div id="toastMessage">Thao tác thành công!</div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="data.js"></script>
+  <script src="admin.js"></script>
+</body>
+
+</html>
