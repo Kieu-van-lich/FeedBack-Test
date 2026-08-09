@@ -493,6 +493,48 @@ function setupSupabaseUI() {
         await loadAdminItems();
         renderAllAdmin();
       }
+  // Seed existing feedbackData items into Supabase
+  const seedBtn = $("#seedSupabaseBtn");
+  if (seedBtn) {
+    seedBtn.addEventListener("click", async () => {
+      if (typeof isSupabaseConfigured !== "function" || !isSupabaseConfigured()) {
+        showToast("❌ Vui lòng kết nối Supabase trước!");
+        return;
+      }
+
+      if (typeof feedbackData === "undefined" || !Array.isArray(feedbackData)) {
+        showToast("❌ Không tìm thấy dữ liệu data.js!");
+        return;
+      }
+
+      if (!confirm(`Bạn có muốn nhập tự động ${feedbackData.length} feedback từ data.js vào Supabase không?`)) {
+        return;
+      }
+
+      showToast(`⏳ Đang đẩy ${feedbackData.length} feedback vào Supabase...`);
+
+      try {
+        const rows = feedbackData.map((item, idx) => ({
+          title: `${item.category} — Feedback #${String(idx + 1).padStart(2, "0")}`,
+          category: item.category,
+          path: item.path,
+          filename: item.filename || item.path.split("/").pop()
+        }));
+
+        const chunkSize = 50;
+        for (let i = 0; i < rows.length; i += chunkSize) {
+          const chunk = rows.slice(i, i + chunkSize);
+          const { error } = await supabaseClient.from("feedbacks").insert(chunk);
+          if (error) throw error;
+        }
+
+        showToast(`⚡ Đã nhập thành công ${rows.length} feedback vào Supabase!`);
+        await loadAdminItems();
+        renderAllAdmin();
+      } catch (err) {
+        console.error("Error seeding data:", err);
+        showToast(`❌ Lỗi nhập Supabase: ${err.message}`);
+      }
     });
   }
 }
