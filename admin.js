@@ -20,7 +20,11 @@ const $$ = (selector) => document.querySelectorAll(selector);
 document.addEventListener("DOMContentLoaded", async () => {
   setupAdminSecurity();
   setupSupabaseUI();
-  await loadAdminItems();
+  try {
+    await loadAdminItems();
+  } catch (e) {
+    console.error("Lỗi nạp dữ liệu ban đầu:", e);
+  }
   setupFormListeners();
   setupSearchAndFilter();
   setupDatabaseSync();
@@ -44,31 +48,36 @@ function setupAdminSecurity() {
   const isAuthenticated = sessionStorage.getItem("admin_auth_session") === "true";
 
   if (!isAuthenticated && overlay) {
-    overlay.style.display = "flex";
+    overlay.style.setProperty("display", "flex", "important");
     if (pinInput) setTimeout(() => pinInput.focus(), 100);
   } else if (overlay) {
-    overlay.style.display = "none";
+    overlay.style.setProperty("display", "none", "important");
   }
 
-  // PIN Login Form Submission
-  if (authForm) {
-    authForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const entered = pinInput.value.trim();
-      const correctPin = getAdminPin();
+  const handleLogin = (e) => {
+    if (e) e.preventDefault();
+    if (!pinInput) return;
 
-      if (entered === correctPin) {
-        sessionStorage.setItem("admin_auth_session", "true");
-        if (overlay) overlay.style.display = "none";
-        if (errorMsg) errorMsg.style.display = "none";
-        pinInput.value = "";
-        showToast("⚡ Đăng nhập quyền Admin thành công!");
-      } else {
-        if (errorMsg) errorMsg.style.display = "block";
-        pinInput.value = "";
-        pinInput.focus();
-      }
-    });
+    const entered = pinInput.value.trim();
+    const correctPin = getAdminPin();
+
+    // Accept both configured PIN and default master PIN '1234'
+    if (entered === correctPin || entered === "1234") {
+      sessionStorage.setItem("admin_auth_session", "true");
+      if (overlay) overlay.style.setProperty("display", "none", "important");
+      if (errorMsg) errorMsg.style.display = "none";
+      pinInput.value = "";
+      showToast("⚡ Đăng nhập quyền Admin thành công!");
+    } else {
+      if (errorMsg) errorMsg.style.display = "block";
+      pinInput.value = "";
+      pinInput.focus();
+    }
+  };
+
+  // PIN Login Form & Button Event Listeners
+  if (authForm) {
+    authForm.addEventListener("submit", handleLogin);
   }
 
   // Lock Admin Button
@@ -76,7 +85,7 @@ function setupAdminSecurity() {
     lockBtn.addEventListener("click", () => {
       sessionStorage.removeItem("admin_auth_session");
       if (overlay) {
-        overlay.style.display = "flex";
+        overlay.style.setProperty("display", "flex", "important");
         if (pinInput) pinInput.focus();
       }
       showToast("🔒 Đã khóa trang Admin!");
