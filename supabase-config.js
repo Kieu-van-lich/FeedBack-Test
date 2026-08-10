@@ -108,6 +108,47 @@ async function addSupabaseFeedback(itemData, imageFile = null) {
   }
 }
 
+// 3b. Thêm nhiều Feedback cùng lúc vào Supabase (Batch Upload)
+async function addMultipleSupabaseFeedbacks(itemsArray, filesArray = []) {
+  if (!isSupabaseConfigured() || !Array.isArray(itemsArray) || itemsArray.length === 0) return null;
+
+  try {
+    const rows = [];
+    for (let i = 0; i < itemsArray.length; i++) {
+      const item = itemsArray[i];
+      const file = filesArray[i] || null;
+      let imageUrl = item.path;
+
+      if (file) {
+        try {
+          const uploadedUrl = await uploadImageToSupabase(file);
+          if (uploadedUrl) imageUrl = uploadedUrl;
+        } catch (e) {
+          console.warn("Storage upload fallback for item " + i, e);
+        }
+      }
+
+      rows.push({
+        title: item.title || `${item.category} — Feedback`,
+        category: item.category,
+        path: imageUrl,
+        filename: item.filename || (imageUrl ? imageUrl.split("/").pop() : "image.jpg")
+      });
+    }
+
+    const { data, error } = await supabaseClient
+      .from("feedbacks")
+      .insert(rows)
+      .select();
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error("Lỗi thêm feedback hàng loạt Supabase:", err.message);
+    throw err;
+  }
+}
+
 // 4. Xóa Feedback khỏi Supabase
 async function deleteSupabaseFeedback(id) {
   if (!isSupabaseConfigured()) return false;

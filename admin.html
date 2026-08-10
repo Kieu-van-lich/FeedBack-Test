@@ -584,40 +584,98 @@
       });
     }
 
+    window.selectedBatchFiles = [];
+
     function handleDirectFileSelect(input) {
-      var file = null;
-      if (input && input.files && input.files[0]) {
-        file = input.files[0];
+      if (input && input.files && input.files.length > 0) {
+        handleBatchFileSelection(input.files);
       } else if (input && input.name && input.type && input.type.startsWith("image/")) {
-        file = input;
-      }
-      if (file) {
-        window.selectedRawFile = file;
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          compressBase64Image(e.target.result, 1000, 0.75).then(function(compressed) {
-            window.currentPreviewBase64 = compressed;
-            var img = document.getElementById("imagePreview");
-            var container = document.getElementById("imagePreviewContainer");
-            var pathInput = document.getElementById("imagePathInput");
-            if (img) img.src = window.currentPreviewBase64;
-            if (container) container.style.display = "block";
-            if (pathInput) pathInput.value = "[Ảnh Tệp: " + file.name + "]";
-          });
-        };
-        reader.readAsDataURL(file);
+        handleBatchFileSelection([input]);
       }
     }
 
-    function removePreviewImage() {
+    async function handleBatchFileSelection(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      var files = Array.from(fileList).filter(function(f) { return f.type && f.type.startsWith("image/"); });
+      if (files.length === 0) {
+        if (typeof showToast === "function") showToast("Vui lòng chọn các file định dạng hình ảnh!");
+        return;
+      }
+
+      if (typeof showToast === "function") showToast("⏳ Đang tải xem trước " + files.length + " ảnh...");
+
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var base64 = await readFileAsDataURL(file);
+        var compressed = await compressBase64Image(base64, 1000, 0.75);
+        window.selectedBatchFiles.push({
+          id: "batch_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+          file: file,
+          base64: compressed,
+          name: file.name
+        });
+      }
+
+      renderMultiPreviewGrid();
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise(function(resolve) {
+        var reader = new FileReader();
+        reader.onload = function(e) { resolve(e.target.result); };
+        reader.onerror = function() { resolve(""); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderMultiPreviewGrid() {
+      var container = document.getElementById("imagePreviewContainer");
+      var grid = document.getElementById("multiPreviewGrid");
+      var countBadge = document.getElementById("previewCountBadge");
+      var submitBtn = document.getElementById("submitBtn");
+      var pathInput = document.getElementById("imagePathInput");
+
+      if (!container || !grid) return;
+
+      var count = window.selectedBatchFiles ? window.selectedBatchFiles.length : 0;
+
+      if (count === 0) {
+        container.style.display = "none";
+        grid.innerHTML = "";
+        if (pathInput && pathInput.value.startsWith("[Ảnh")) pathInput.value = "";
+        if (submitBtn) submitBtn.innerHTML = "<span>⚡ Lưu Feedback</span>";
+        return;
+      }
+
+      container.style.display = "block";
+      if (countBadge) countBadge.textContent = "Đã chọn: " + count + " ảnh";
+      if (pathInput) pathInput.value = "[Đã chọn " + count + " tệp ảnh]";
+      if (submitBtn) submitBtn.innerHTML = "<span>⚡ Lưu " + count + " Feedback Mới</span>";
+
+      grid.innerHTML = window.selectedBatchFiles.map(function(item, idx) {
+        return '<div style="position: relative; height: 75px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-medium); background: #000;">' +
+          '<img src="' + item.base64 + '" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview" />' +
+          '<button type="button" onclick="removeSinglePreview(\'' + item.id + '\')" style="position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: rgba(239,68,68,0.9); color: #fff; border: none; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Xóa ảnh này">✕</button>' +
+          '<span style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); font-size: 8.5px; color: #fff; padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;">#' + (idx + 1) + ' ' + item.name + '</span>' +
+        '</div>';
+      }).join("");
+    }
+
+    function removeSinglePreview(id) {
+      if (!window.selectedBatchFiles) return;
+      window.selectedBatchFiles = window.selectedBatchFiles.filter(function(f) { return f.id !== id; });
+      renderMultiPreviewGrid();
+    }
+
+    function removeAllPreviewImages() {
+      window.selectedBatchFiles = [];
       window.currentPreviewBase64 = null;
       window.selectedRawFile = null;
       var pathInp = document.getElementById("imagePathInput");
       if (pathInp) pathInp.value = "";
       var fileInp = document.getElementById("imageFileInput");
       if (fileInp) fileInp.value = "";
-      var container = document.getElementById("imagePreviewContainer");
-      if (container) container.style.display = "none";
+      renderMultiPreviewGrid();
     }
 
     async function handleAdminFormSubmit(e) {
@@ -626,54 +684,117 @@
       var catSelect = document.getElementById("categorySelect");
       var titleInp = document.getElementById("titleInput");
       var pathInp = document.getElementById("imagePathInput");
+      var editIdInp = document.getElementById("editItemId");
 
       var category = catSelect ? catSelect.value : "M4A1 Battle of Faith";
       var title = titleInp ? titleInp.value.trim() : "";
       var pathVal = pathInp ? pathInp.value.trim() : "";
+      var editId = editIdInp ? editIdInp.value : "";
 
-      var base64 = window.currentPreviewBase64 || "";
-      var finalPath = base64 || pathVal;
-
-      if (!finalPath && !window.selectedRawFile) {
-        if (typeof showToast === "function") showToast("Vui lòng chọn/kéo thả ảnh hoặc nhập đường dẫn!");
+      // 1. Edit existing item
+      if (editId && typeof adminItems !== "undefined") {
+        var idx = adminItems.findIndex(function(i) { return i.id === editId; });
+        if (idx !== -1) {
+          var finalPath = pathVal;
+          if (window.selectedBatchFiles && window.selectedBatchFiles.length > 0) {
+            finalPath = window.selectedBatchFiles[0].base64;
+          }
+          adminItems[idx].category = category;
+          adminItems[idx].title = title || (category + " — Feedback");
+          if (finalPath) adminItems[idx].path = finalPath;
+          if (typeof saveCustomItems === "function") saveCustomItems();
+          if (typeof showToast === "function") showToast("Đã cập nhật feedback!");
+          if (typeof resetForm === "function") resetForm();
+          if (typeof renderAllAdmin === "function") renderAllAdmin();
+        }
         return false;
       }
 
-      var newItem = {
-        id: "custom-" + Date.now(),
-        path: finalPath,
-        category: category,
-        title: title || (category + " — Feedback"),
-        filename: base64 ? ("upload-" + Date.now() + ".jpg") : (finalPath.split("/").pop() || "image.jpg"),
-        date: new Date().toISOString(),
-        isBase: false
-      };
+      // 2. Batch Upload (1 or more files)
+      if (window.selectedBatchFiles && window.selectedBatchFiles.length > 0) {
+        var batch = window.selectedBatchFiles.slice();
+        var total = batch.length;
+        var newItems = [];
+        var filesToUpload = [];
 
-      if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
-        adminItems.unshift(newItem);
-      }
+        if (typeof showToast === "function") showToast("⏳ Đang lưu " + total + " feedback mới...");
 
-      try {
-        var rawCustom = localStorage.getItem("custom_feedback_data");
-        var customList = rawCustom ? JSON.parse(rawCustom) : [];
-        customList.unshift(newItem);
-        localStorage.setItem("custom_feedback_data", JSON.stringify(customList));
-      } catch (err) {
-        console.warn("LocalStorage save notice:", err);
-      }
+        batch.forEach(function(item, index) {
+          var displayTitle = total > 1
+            ? (title ? (title + " #" + String(index + 1).padStart(2, "0")) : (category + " — Feedback #" + String(index + 1).padStart(2, "0")))
+            : (title || (category + " — Feedback"));
 
-      if (typeof showToast === "function") showToast("⚡ Đã lưu feedback mới thành công!");
-      if (typeof resetForm === "function") resetForm();
-      if (typeof renderAllAdmin === "function") renderAllAdmin();
+          var newItem = {
+            id: "custom-" + Date.now() + "-" + index,
+            path: item.base64,
+            category: category,
+            title: displayTitle,
+            filename: item.name || ("upload-" + Date.now() + "-" + index + ".jpg"),
+            date: new Date().toISOString(),
+            isBase: false
+          };
 
-      if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && typeof addSupabaseFeedback === "function") {
-        try {
-          addSupabaseFeedback({ category: category, title: newItem.title, path: finalPath }, window.selectedRawFile);
-        } catch (err) {
-          console.warn("Supabase background upload notice:", err);
+          newItems.push(newItem);
+          filesToUpload.push(item.file);
+        });
+
+        if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
+          adminItems.unshift.apply(adminItems, newItems);
         }
+
+        try {
+          var rawCustom = localStorage.getItem("custom_feedback_data");
+          var customList = rawCustom ? JSON.parse(rawCustom) : [];
+          customList.unshift.apply(customList, newItems);
+          localStorage.setItem("custom_feedback_data", JSON.stringify(customList));
+        } catch (err) {
+          console.warn("LocalStorage save notice:", err);
+        }
+
+        if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && typeof addMultipleSupabaseFeedbacks === "function") {
+          try {
+            addMultipleSupabaseFeedbacks(newItems, filesToUpload);
+          } catch (err) {
+            console.warn("Supabase batch upload notice:", err);
+          }
+        }
+
+        if (typeof showToast === "function") showToast("⚡ Đã lưu thành công " + total + " feedback mới!");
+        if (typeof resetForm === "function") resetForm();
+        if (typeof renderAllAdmin === "function") renderAllAdmin();
+        return false;
       }
 
+      // 3. Fallback for manual Path input
+      if (pathVal) {
+        var manualItem = {
+          id: "custom-" + Date.now(),
+          path: pathVal,
+          category: category,
+          title: title || (category + " — Feedback"),
+          filename: pathVal.split("/").pop() || "image.jpg",
+          date: new Date().toISOString(),
+          isBase: false
+        };
+
+        if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
+          adminItems.unshift(manualItem);
+        }
+
+        try {
+          var raw = localStorage.getItem("custom_feedback_data");
+          var list = raw ? JSON.parse(raw) : [];
+          list.unshift(manualItem);
+          localStorage.setItem("custom_feedback_data", JSON.stringify(list));
+        } catch (err) {}
+
+        if (typeof showToast === "function") showToast("⚡ Đã lưu feedback mới thành công!");
+        if (typeof resetForm === "function") resetForm();
+        if (typeof renderAllAdmin === "function") renderAllAdmin();
+        return false;
+      }
+
+      if (typeof showToast === "function") showToast("Vui lòng chọn/kéo thả ít nhất 1 ảnh hoặc nhập đường dẫn!");
       return false;
     }
   </script>
@@ -753,15 +874,15 @@
                  onclick="document.getElementById('imageFileInput').click();"
                  ondragover="event.preventDefault(); event.stopPropagation(); this.classList.add('dragover');"
                  ondragleave="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover');"
-                 ondrop="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover'); if(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) { handleDirectFileSelect(event.dataTransfer.files[0]); }">
+                 ondrop="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover'); if(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) { handleBatchFileSelection(event.dataTransfer.files); }">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn ảnh hoặc Kéo thả ảnh</p>
-              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ JPG, PNG, WEBP (Tự động lưu vào Database)</p>
-              <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleDirectFileSelect(this);" />
+              <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn một hoặc nhiều ảnh (Kéo thả nhiều ảnh cùng lúc)</p>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ chọn cùng lúc nhiều file JPG, PNG, WEBP</p>
+              <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;" onchange="handleDirectFileSelect(this);" />
             </div>
 
             <div style="margin-top: 10px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">hoặc nhập
@@ -770,9 +891,19 @@
             <input type="text" id="imagePathInput" class="form-input" style="margin-top: 6px;"
               placeholder="VD: pictures/ak riu thiêng/merged-image (1).jpg" />
 
-            <div class="upload-preview" id="imagePreviewContainer">
-              <img id="imagePreview" src="" alt="Preview" />
-              <button type="button" class="remove-preview-btn" id="removePreviewBtn" onclick="removePreviewImage()" title="Xóa ảnh">✕</button>
+            <!-- Multi Image Preview Grid -->
+            <div id="imagePreviewContainer" style="display: none; margin-top: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span id="previewCountBadge" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); background: rgba(185, 243, 75, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(185, 243, 75, 0.3);">
+                  Đã chọn: 0 ảnh
+                </span>
+                <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" onclick="removeAllPreviewImages()">
+                  ✕ Xóa tất cả ảnh
+                </button>
+              </div>
+              <div id="multiPreviewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 8px; background: rgba(0,0,0,0.35); border-radius: var(--radius-sm); border: 1px solid var(--border-medium);">
+                <!-- Injected by JS -->
+              </div>
             </div>
           </div>
 

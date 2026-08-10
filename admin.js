@@ -619,16 +619,20 @@ function setupFormListeners() {
     dropzone.addEventListener("drop", (e) => {
       e.preventDefault();
       dropzone.classList.remove("dragover");
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileSelect(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        if (typeof handleBatchFileSelection === "function") {
+          handleBatchFileSelection(e.dataTransfer.files);
+        }
       }
     });
   }
 
   if (fileInput) {
     fileInput.addEventListener("change", (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleFileSelect(e.target.files[0]);
+      if (e.target.files && e.target.files.length > 0) {
+        if (typeof handleBatchFileSelection === "function") {
+          handleBatchFileSelection(e.target.files);
+        }
       }
     });
   }
@@ -695,9 +699,12 @@ function resetForm() {
   selectedRawFile = null;
   window.currentPreviewBase64 = "";
   window.selectedRawFile = null;
-  $("#addFeedbackForm").reset();
-  $("#imagePreview").src = "";
-  $("#imagePreviewContainer").style.display = "none";
+  window.selectedBatchFiles = [];
+  const form = $("#addFeedbackForm");
+  if (form) form.reset();
+  const editIdInp = $("#editItemId");
+  if (editIdInp) editIdInp.value = "";
+  if (typeof renderMultiPreviewGrid === "function") renderMultiPreviewGrid();
   $("#formTitle").textContent = "Thêm Feedback Mới";
   $("#submitBtn").innerHTML = "<span>⚡ Lưu Feedback</span>";
   $("#cancelEditBtn").style.display = "none";
@@ -809,18 +816,20 @@ window.editFeedbackItem = function (id) {
   if (!item) return;
 
   editingId = id;
+  const editIdInp = $("#editItemId");
+  if (editIdInp) editIdInp.value = id;
+
   $("#categorySelect").value = item.category || "M4A1 Battle of Faith";
   $("#titleInput").value = item.title || "";
   $("#imagePathInput").value = item.path || "";
 
-  if (item.path && item.path.startsWith("data:image")) {
-    currentPreviewBase64 = item.path;
-    $("#imagePreview").src = currentPreviewBase64;
-    $("#imagePreviewContainer").style.display = "block";
-  } else if (item.path) {
-    $("#imagePreview").src = item.path;
-    $("#imagePreviewContainer").style.display = "block";
-  }
+  window.selectedBatchFiles = [{
+    id: "edit_preview",
+    file: null,
+    base64: item.path || "",
+    name: item.filename || "image.jpg"
+  }];
+  if (typeof renderMultiPreviewGrid === "function") renderMultiPreviewGrid();
 
   $("#formTitle").textContent = "Chỉnh Sửa Feedback";
   $("#submitBtn").innerHTML = "<span>⚡ Cập Nhật Feedback</span>";
