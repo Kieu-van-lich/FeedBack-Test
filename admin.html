@@ -552,8 +552,13 @@
     }
 
     function handleDirectFileSelect(input) {
+      var file = null;
       if (input && input.files && input.files[0]) {
-        var file = input.files[0];
+        file = input.files[0];
+      } else if (input && input.name && input.type && input.type.startsWith("image/")) {
+        file = input;
+      }
+      if (file) {
         window.selectedRawFile = file;
         var reader = new FileReader();
         reader.onload = function(e) {

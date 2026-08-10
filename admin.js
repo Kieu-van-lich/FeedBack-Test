@@ -347,6 +347,9 @@ function setupFormListeners() {
     removeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       currentPreviewBase64 = "";
+      window.currentPreviewBase64 = "";
+      window.selectedRawFile = null;
+      selectedRawFile = null;
       pathInput.value = "";
       fileInput.value = "";
       previewImg.src = "";
@@ -363,38 +366,40 @@ function setupFormListeners() {
       const title = $("#titleInput").value.trim();
       const pathVal = $("#imagePathInput").value.trim();
 
-      const finalPath = currentPreviewBase64 || pathVal;
+      const base64 = window.currentPreviewBase64 || currentPreviewBase64 || "";
+      const rawFile = window.selectedRawFile || selectedRawFile;
+      const finalPath = base64 || pathVal;
 
-      if (!finalPath && !selectedRawFile) {
+      if (!finalPath && !rawFile) {
         showToast("Vui lòng tải ảnh lên hoặc nhập đường dẫn ảnh!");
         return;
       }
 
-      // 1. Supabase Mode Active
+      // 1. Try Supabase Mode Active
       if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured()) {
         try {
-          showToast("Đang tải dữ liệu lên Supabase...");
+          showToast("⏳ Đang tải dữ liệu lên Supabase...");
           if (editingId) {
             await updateSupabaseFeedback(editingId, {
               category: category,
               title: title || `${category} — Feedback`,
               path: finalPath
             });
-            showToast("Đã cập nhật feedback trên Supabase!");
+            showToast("⚡ Đã cập nhật feedback trên Supabase!");
           } else {
             await addSupabaseFeedback(
               { category, title: title || `${category} — Feedback`, path: finalPath },
-              selectedRawFile
+              rawFile
             );
-            showToast("Đã thêm feedback mới vào Supabase thành công!");
+            showToast("⚡ Đã thêm feedback mới vào Supabase thành công!");
           }
           await loadAdminItems();
           resetForm();
           renderAllAdmin();
           return;
         } catch (err) {
-          showToast(`Lỗi Supabase: ${err.message}`);
-          return;
+          console.warn("Supabase save error, fallback to local:", err);
+          showToast(`⚠️ Supabase chưa khởi tạo bảng, đang lưu tạm vào máy...`);
         }
       }
 
@@ -408,10 +413,10 @@ function setupFormListeners() {
             category: category,
             title: title || `${category} — Feedback`,
             path: finalPath,
-            filename: currentPreviewBase64 ? "uploaded_image.png" : finalPath.split("/").pop(),
+            filename: base64 ? "uploaded_image.png" : finalPath.split("/").pop(),
             isEdited: true
           };
-          showToast("Đã cập nhật feedback thành công!");
+          showToast("⚡ Đã cập nhật feedback thành công!");
         }
       } else {
         // Add new
@@ -419,14 +424,14 @@ function setupFormListeners() {
           id: `custom-${Date.now()}`,
           path: finalPath,
           category: category,
-          filename: currentPreviewBase64 ? `upload-${Date.now()}.png` : finalPath.split("/").pop(),
+          filename: base64 ? `upload-${Date.now()}.png` : finalPath.split("/").pop(),
           title: title || `${category} — Feedback mới`,
           date: new Date().toISOString(),
           isBase: false
         };
 
         adminItems.unshift(newItem);
-        showToast("Đã thêm feedback mới vào CSDL LocalStorage!");
+        showToast("⚡ Đã lưu feedback mới thành công!");
       }
 
       saveCustomItems();
@@ -436,21 +441,26 @@ function setupFormListeners() {
   }
 
   // Cancel edit button
-  $("#cancelEditBtn").addEventListener("click", () => {
-    resetForm();
-  });
+  if ($("#cancelEditBtn")) {
+    $("#cancelEditBtn").addEventListener("click", () => {
+      resetForm();
+    });
+  }
 }
 
 function handleFileSelect(file) {
-  if (!file.type.startsWith("image/")) {
+  if (!file || !file.type.startsWith("image/")) {
     showToast("Vui lòng chọn file hình ảnh!");
     return;
   }
 
   selectedRawFile = file;
+  window.selectedRawFile = file;
+
   const reader = new FileReader();
   reader.onload = (e) => {
     currentPreviewBase64 = e.target.result;
+    window.currentPreviewBase64 = e.target.result;
     $("#imagePreview").src = currentPreviewBase64;
     $("#imagePreviewContainer").style.display = "block";
     $("#imagePathInput").value = `[Ảnh tải lên: ${file.name}]`;
@@ -462,6 +472,8 @@ function resetForm() {
   editingId = null;
   currentPreviewBase64 = "";
   selectedRawFile = null;
+  window.currentPreviewBase64 = "";
+  window.selectedRawFile = null;
   $("#addFeedbackForm").reset();
   $("#imagePreview").src = "";
   $("#imagePreviewContainer").style.display = "none";
