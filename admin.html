@@ -838,6 +838,9 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Admin Table Pagination -->
+        <div id="adminPagination" class="pagination-wrapper" style="margin-top: 24px; margin-bottom: 8px;"></div>
       </div>
 
     </div>
@@ -994,16 +997,6 @@ CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (
           </div>
           <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
             <div class="form-group" style="flex: 1; margin-bottom: 0;">
-              <label class="form-label" for="catShortInput">Tên Viết Tắt (VD: SC) *</label>
-              <input type="text" id="catShortInput" class="form-input" placeholder="VD: SC" required />
-            </div>
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-              <label class="form-label" for="catTierInput">Hạng Thẻ (Thần thoại, Huyền thoại...)</label>
-              <input type="text" id="catTierInput" class="form-input" placeholder="VD: Thần thoại" required />
-            </div>
-          </div>
-          <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
               <label class="form-label" for="catColorInput">Màu Sắc Đại Diện (Mã Hex) *</label>
               <input type="color" id="catColorInput" class="form-input" style="height: 48px; padding: 0 10px;" value="#ff3366" required />
             </div>
@@ -1019,12 +1012,11 @@ CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (
         </form>
 
         <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-medium); border-radius: var(--radius-md); overflow: auto;">
-          <table class="admin-table" style="min-width: 600px;">
+          <table class="admin-table" style="min-width: 500px;">
             <thead>
               <tr>
-                <th style="width: 30%;">Tên Danh Mục</th>
-                <th style="width: 25%;">Hạng / Viết Tắt</th>
-                <th style="width: 25%;">Màu Sắc</th>
+                <th style="width: 50%;">Tên Danh Mục</th>
+                <th style="width: 30%;">Màu Sắc</th>
                 <th style="width: 20%; text-align: right;">Hành Động</th>
               </tr>
             </thead>

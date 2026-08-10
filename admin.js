@@ -11,6 +11,8 @@ let adminItems = [];
 let editingId = null;
 let currentPreviewBase64 = "";
 let selectedRawFile = null;
+let adminCurrentPage = 1;
+const ADMIN_ITEMS_PER_PAGE = 10;
 
 let CATEGORIES = [];
 
@@ -27,11 +29,11 @@ function loadDynamicCategoriesAdmin() {
     CATEGORIES = CATEGORY_DATA;
   } else {
     CATEGORIES = [
-      { id: "m4a1", name: "M4A1 Battle of Faith", short: "M4", tier: "Thần thoại", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
-      { id: "ak", name: "Ak Riu Thiêng", short: "AR", tier: "Huyền thoại", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
-      { id: "dao", name: "Đao Bướm", short: "DB", tier: "Cực hiếm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
-      { id: "du", name: "Dù Saitama", short: "DS", tier: "Hiếm", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
-      { id: "m700", name: "M700 ELIZABETH", short: "M7", tier: "Độc quyền", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
+      { id: "m4a1", name: "M4A1 Battle of Faith", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
+      { id: "ak", name: "Ak Riu Thiêng", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
+      { id: "dao", name: "Đao Bướm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
+      { id: "du", name: "Dù Saitama", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
+      { id: "m700", name: "M700 ELIZABETH", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
     ];
   }
 }
@@ -312,10 +314,6 @@ function renderCategoriesAdmin() {
         </div>
       </td>
       <td>
-        <span style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">${cat.short}</span>
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${cat.tier}</div>
-      </td>
-      <td>
         <div style="display: flex; align-items: center; gap: 8px;">
           <div style="width: 16px; height: 16px; border-radius: 50%; background: ${cat.accent}; box-shadow: 0 0 8px ${cat.glow};"></div>
           <span style="font-family: monospace; font-size: 0.85rem;">${cat.accent}</span>
@@ -345,12 +343,10 @@ window.handleCategorySubmit = function(e) {
   if (e) e.preventDefault();
   const idInput = $("#editCatId").value;
   const name = $("#catNameInput").value.trim();
-  const short = $("#catShortInput").value.trim();
-  const tier = $("#catTierInput").value.trim();
   const accent = $("#catColorInput").value;
   const image = $("#catImageInput").value.trim();
   
-  if (!name || !short || !accent || !image) {
+  if (!name || !accent || !image) {
     showToast("Vui lòng điền đủ các trường bắt buộc!");
     return;
   }
@@ -369,14 +365,14 @@ window.handleCategorySubmit = function(e) {
     // Edit existing
     const idx = CATEGORIES.findIndex(c => c.id === idInput);
     if (idx !== -1) {
-      CATEGORIES[idx] = { ...CATEGORIES[idx], name, short, tier, accent, glow, dim, image };
+      CATEGORIES[idx] = { ...CATEGORIES[idx], name, accent, glow, dim, image };
       showToast("Đã cập nhật danh mục!");
     }
   } else {
     // Add new
     const newId = "cat_" + Date.now().toString(36);
     CATEGORIES.push({
-      id: newId, name, short, tier, count: 0, accent, glow, dim, image
+      id: newId, name, count: 0, accent, glow, dim, image
     });
     showToast("Đã thêm danh mục mới!");
   }
@@ -394,8 +390,6 @@ window.editCategoryAdmin = function(id) {
   if (!cat) return;
   $("#editCatId").value = cat.id;
   $("#catNameInput").value = cat.name;
-  $("#catShortInput").value = cat.short;
-  $("#catTierInput").value = cat.tier || "";
   $("#catColorInput").value = cat.accent;
   $("#catImageInput").value = cat.image;
   
@@ -448,11 +442,18 @@ function renderTable() {
 
     // Keyword filter
     if (keyword) {
-      return cat.includes(keyword) || fname.includes(keyword) || title.includes(keyword);
+      return catNameStr.includes(keyword) || fname.includes(keyword) || title.includes(keyword);
     }
 
     return true;
   });
+
+  const tableItemCount = $("#tableItemCount");
+  if (tableItemCount) tableItemCount.textContent = filtered.length;
+
+  const totalPages = Math.ceil(filtered.length / ADMIN_ITEMS_PER_PAGE);
+  if (adminCurrentPage > totalPages && totalPages > 0) adminCurrentPage = totalPages;
+  if (adminCurrentPage < 1) adminCurrentPage = 1;
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
@@ -462,10 +463,14 @@ function renderTable() {
         </td>
       </tr>
     `;
+    renderAdminPagination(0);
     return;
   }
 
-  tbody.innerHTML = filtered.map(item => {
+  const startIndex = (adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE;
+  const paginated = filtered.slice(startIndex, startIndex + ADMIN_ITEMS_PER_PAGE);
+
+  tbody.innerHTML = paginated.map(item => {
     const imgSrc = item.path || item.src || "assets/demo/feedback-01.png";
     const catName = item.category || "Giao dịch chung";
     const filename = item.filename || (item.path ? item.path.split("/").pop() : "File ảnh");
@@ -509,7 +514,60 @@ function renderTable() {
       </tr>
     `;
   }).join("");
+
+  renderAdminPagination(totalPages);
 }
+
+// Render Admin Table Pagination Controls
+function renderAdminPagination(totalPages) {
+  const paginationEl = $("#adminPagination");
+  if (!paginationEl) return;
+
+  if (totalPages <= 1) {
+    paginationEl.innerHTML = "";
+    return;
+  }
+
+  let html = "";
+
+  // Prev Button
+  html += `
+    <button class="page-btn" onclick="changeAdminPage(${adminCurrentPage - 1})" ${adminCurrentPage === 1 ? "disabled" : ""} aria-label="Trang trước">
+      ‹ Trước
+    </button>
+  `;
+
+  // Numbered Page Buttons with Smart Ellipsis
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= adminCurrentPage - 2 && i <= adminCurrentPage + 2)) {
+      html += `
+        <button class="page-btn ${i === adminCurrentPage ? "active" : ""}" onclick="changeAdminPage(${i})">
+          ${i}
+        </button>
+      `;
+    } else if (i === adminCurrentPage - 3 || i === adminCurrentPage + 3) {
+      html += `<span class="page-ellipsis">...</span>`;
+    }
+  }
+
+  // Next Button
+  html += `
+    <button class="page-btn" onclick="changeAdminPage(${adminCurrentPage + 1})" ${adminCurrentPage === totalPages ? "disabled" : ""} aria-label="Trang sau">
+      Sau ›
+    </button>
+  `;
+
+  paginationEl.innerHTML = html;
+}
+
+window.changeAdminPage = function (page) {
+  adminCurrentPage = page;
+  renderTable();
+  const tableWrapper = $(".feedback-table-wrapper");
+  if (tableWrapper) {
+    tableWrapper.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
 
 // 5. Form & Drag Drop Image Upload
 function setupFormListeners() {
@@ -788,8 +846,18 @@ function setupSearchAndFilter() {
   const searchInput = $("#adminSearchInput");
   const catFilter = $("#adminCatFilter");
 
-  if (searchInput) searchInput.addEventListener("input", renderTable);
-  if (catFilter) catFilter.addEventListener("change", renderTable);
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      adminCurrentPage = 1;
+      renderTable();
+    });
+  }
+  if (catFilter) {
+    catFilter.addEventListener("change", () => {
+      adminCurrentPage = 1;
+      renderTable();
+    });
+  }
 }
 
 // 8. Database Sync & Backup Controls

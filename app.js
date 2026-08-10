@@ -21,11 +21,11 @@ function loadDynamicCategories() {
   } else {
     // Fallback if data.js is old
     CATEGORIES = [
-      { id: "m4a1", name: "M4A1 Battle of Faith", short: "M4", tier: "Thần thoại", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
-      { id: "ak", name: "Ak Riu Thiêng", short: "AR", tier: "Huyền thoại", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
-      { id: "dao", name: "Đao Bướm", short: "DB", tier: "Cực hiếm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
-      { id: "du", name: "Dù Saitama", short: "DS", tier: "Hiếm", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
-      { id: "m700", name: "M700 ELIZABETH", short: "M7", tier: "Độc quyền", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
+      { id: "m4a1", name: "M4A1 Battle of Faith", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
+      { id: "ak", name: "Ak Riu Thiêng", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
+      { id: "dao", name: "Đao Bướm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
+      { id: "du", name: "Dù Saitama", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
+      { id: "m700", name: "M700 ELIZABETH", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
     ];
   }
 }
@@ -212,7 +212,6 @@ function renderCategories() {
     >
       <div class="category-image-wrap">
         <img src="${cat.image}" alt="${cat.name}" loading="lazy" />
-        <span class="category-tier-badge">${cat.tier}</span>
       </div>
       <div class="category-meta">
         <span class="category-service-no">0${index + 1} / SERVICE</span>
