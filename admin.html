@@ -197,6 +197,12 @@
       box-shadow: 0 0 0 3px rgba(185, 243, 75, 0.15);
     }
 
+    .form-select option {
+      background-color: #0e1219 !important;
+      color: #ffffff !important;
+      padding: 10px;
+    }
+
     /* Dropzone Upload */
     .upload-dropzone {
       border: 2px dashed rgba(185, 243, 75, 0.3);
@@ -544,6 +550,24 @@
         return false;
       }
     }
+
+    function handleDirectFileSelect(input) {
+      if (input && input.files && input.files[0]) {
+        var file = input.files[0];
+        window.selectedRawFile = file;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          window.currentPreviewBase64 = e.target.result;
+          var img = document.getElementById("imagePreview");
+          var container = document.getElementById("imagePreviewContainer");
+          var pathInput = document.getElementById("imagePathInput");
+          if (img) img.src = window.currentPreviewBase64;
+          if (container) container.style.display = "block";
+          if (pathInput) pathInput.value = "[Ảnh Tệp: " + file.name + "]";
+        };
+        reader.readAsDataURL(file);
+      }
+    }
   </script>
 
   <!-- Admin Main Container -->
@@ -662,17 +686,15 @@
           <div class="form-group">
             <label class="form-label">Hình Ảnh Feedback *</label>
 
-            <div class="upload-dropzone" id="dropzone">
+            <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('imageFileInput').click();">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn ảnh hoặc Kéo thả
-                ảnh</p>
-              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ JPG, PNG, WEBP (Tự động
-                lưu vào Database)</p>
-              <input type="file" id="imageFileInput" accept="image/*" style="display: none;" />
+              <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn ảnh hoặc Kéo thả ảnh</p>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ JPG, PNG, WEBP (Tự động lưu vào Database)</p>
+              <input type="file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleDirectFileSelect(this);" />
             </div>
 
             <div style="margin-top: 10px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">hoặc nhập
