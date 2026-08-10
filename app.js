@@ -31,6 +31,27 @@ function loadDynamicCategories() {
 }
 loadDynamicCategories();
 
+function normalizeText(str) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .trim();
+}
+
+function matchCategory(itemCategory) {
+  if (!itemCategory) return null;
+  const normItem = normalizeText(itemCategory);
+  return CATEGORIES.find(c => {
+    const normName = normalizeText(c.name);
+    const normId = normalizeText(c.id);
+    return normItem === normName || normItem === normId || normItem.includes(normName) || normName.includes(normItem) || normItem.includes(normId);
+  });
+}
+
 
 // Fallback demo images if feedbackData is empty
 const DEMO_IMAGES = [
@@ -146,20 +167,12 @@ function getRealItems() {
   return combined.map((item, index) => {
     let catId = "other";
     let catName = item.category || "Khác";
-    let lcCat = catName.toLowerCase();
     
-    const foundCat = CATEGORIES.find(c => lcCat === c.name.toLowerCase() || lcCat.includes(c.name.toLowerCase()));
-    
-    // For backward compatibility with old data strings
-    if (!foundCat) {
-      if (lcCat.includes("m4a1")) catId = "m4a1";
-      else if (lcCat.includes("ak")) catId = "ak";
-      else if (lcCat.includes("dao")) catId = "dao";
-      else if (lcCat.includes("dù")) catId = "du";
-      else if (lcCat.includes("m700")) catId = "m700";
-      else if (item.categoryId) catId = item.categoryId;
-    } else {
+    const foundCat = matchCategory(catName);
+    if (foundCat) {
       catId = foundCat.id;
+    } else if (item.categoryId) {
+      catId = item.categoryId;
     }
 
     return {

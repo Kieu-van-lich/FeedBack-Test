@@ -41,6 +41,27 @@ function loadDynamicCategoriesAdmin() {
 function saveDynamicCategoriesAdmin() {
   localStorage.setItem("custom_categories_data", JSON.stringify(CATEGORIES));
 }
+
+function normalizeText(str) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .trim();
+}
+
+function matchCategory(itemCategory) {
+  if (!itemCategory) return null;
+  const normItem = normalizeText(itemCategory);
+  return CATEGORIES.find(c => {
+    const normName = normalizeText(c.name);
+    const normId = normalizeText(c.id);
+    return normItem === normName || normItem === normId || normItem.includes(normName) || normName.includes(normItem) || normItem.includes(normId);
+  });
+}
 // Helper Selectors
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
@@ -238,8 +259,7 @@ function renderStats() {
   let otherCount = 0;
   
   adminItems.forEach(item => {
-    const catName = (item.category || "").toLowerCase();
-    const foundCat = CATEGORIES.find(c => catName === c.name.toLowerCase() || catName.includes(c.name.toLowerCase()));
+    const foundCat = matchCategory(item.category);
     if (foundCat) {
       foundCat.count++;
     } else {
@@ -428,21 +448,25 @@ function renderTable() {
   const catFilter = $("#adminCatFilter") ? $("#adminCatFilter").value : "all";
 
   let filtered = adminItems.filter(item => {
-    const catNameStr = (item.category || "").toLowerCase();
+    const catNameStr = item.category || "";
     const fname = (item.filename || item.path || "").toLowerCase();
     const title = (item.title || "").toLowerCase();
 
     // Category filter
     if (catFilter !== "all") {
-      const targetCat = CATEGORIES.find(c => c.id === catFilter);
-      if (targetCat && !catNameStr.includes(targetCat.name.toLowerCase())) {
+      const foundCat = matchCategory(catNameStr);
+      if (!foundCat || foundCat.id !== catFilter) {
         return false;
       }
     }
 
     // Keyword filter
     if (keyword) {
-      return catNameStr.includes(keyword) || fname.includes(keyword) || title.includes(keyword);
+      const normKw = normalizeText(keyword);
+      const normCat = normalizeText(catNameStr);
+      const normTitle = normalizeText(title);
+      const normFname = normalizeText(fname);
+      return normCat.includes(normKw) || normFname.includes(normKw) || normTitle.includes(normKw);
     }
 
     return true;
