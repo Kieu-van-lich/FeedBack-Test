@@ -596,24 +596,34 @@
 
     async function handleBatchFileSelection(fileList) {
       if (!fileList || fileList.length === 0) return;
-      var files = Array.from(fileList).filter(function(f) { return f.type && f.type.startsWith("image/"); });
+      var files = Array.from(fileList).filter(function(f) { return f && f.type && f.type.startsWith("image/"); });
       if (files.length === 0) {
         if (typeof showToast === "function") showToast("Vui lòng chọn các file định dạng hình ảnh!");
         return;
       }
 
-      if (typeof showToast === "function") showToast("⏳ Đang tải xem trước " + files.length + " ảnh...");
+      if (!window.selectedBatchFiles) window.selectedBatchFiles = [];
 
+      var addedCount = 0;
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
+
+        // Deduplicate files by name & size within selectedBatchFiles
+        var isDup = window.selectedBatchFiles.some(function(existing) {
+          return existing.name === file.name && existing.size === file.size;
+        });
+        if (isDup) continue;
+
         var base64 = await readFileAsDataURL(file);
         var compressed = await compressBase64Image(base64, 1000, 0.75);
         window.selectedBatchFiles.push({
-          id: "batch_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+          id: "batch_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7) + "_" + i,
           file: file,
+          size: file.size,
           base64: compressed,
           name: file.name
         });
+        addedCount++;
       }
 
       renderMultiPreviewGrid();
@@ -717,7 +727,7 @@
         var newItems = [];
         var filesToUpload = [];
 
-        if (typeof showToast === "function") showToast("⏳ Đang lưu " + total + " feedback mới...");
+        if (typeof showToast === "function") showToast("⏳ Đang xử lý và lưu " + total + " feedback mới...");
 
         batch.forEach(function(item, index) {
           var displayTitle = total > 1
@@ -725,7 +735,7 @@
             : (title || (category + " — Feedback"));
 
           var newItem = {
-            id: "custom-" + Date.now() + "-" + index,
+            id: "custom-" + Date.now() + "-" + index + "-" + Math.random().toString(36).substring(2, 6),
             path: item.base64,
             category: category,
             title: displayTitle,
@@ -738,10 +748,21 @@
           filesToUpload.push(item.file);
         });
 
+        // Sync with Supabase first to get public URLs
+        if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && typeof addMultipleSupabaseFeedbacks === "function") {
+          try {
+            await addMultipleSupabaseFeedbacks(newItems, filesToUpload);
+          } catch (err) {
+            console.warn("Supabase batch upload notice:", err);
+          }
+        }
+
+        // Add to in-memory adminItems
         if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
           adminItems.unshift.apply(adminItems, newItems);
         }
 
+        // Save to LocalStorage
         try {
           var rawCustom = localStorage.getItem("custom_feedback_data");
           var customList = rawCustom ? JSON.parse(rawCustom) : [];
@@ -749,14 +770,6 @@
           localStorage.setItem("custom_feedback_data", JSON.stringify(customList));
         } catch (err) {
           console.warn("LocalStorage save notice:", err);
-        }
-
-        if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && typeof addMultipleSupabaseFeedbacks === "function") {
-          try {
-            addMultipleSupabaseFeedbacks(newItems, filesToUpload);
-          } catch (err) {
-            console.warn("Supabase batch upload notice:", err);
-          }
         }
 
         if (typeof showToast === "function") showToast("⚡ Đã lưu thành công " + total + " feedback mới!");
@@ -873,8 +886,7 @@
             <div class="upload-dropzone" id="dropzone"
                  onclick="document.getElementById('imageFileInput').click();"
                  ondragover="event.preventDefault(); event.stopPropagation(); this.classList.add('dragover');"
-                 ondragleave="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover');"
-                 ondrop="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover'); if(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) { handleBatchFileSelection(event.dataTransfer.files); }">
+                 ondragleave="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover');">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
@@ -882,7 +894,7 @@
               </svg>
               <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn một hoặc nhiều ảnh (Kéo thả nhiều ảnh cùng lúc)</p>
               <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ chọn cùng lúc nhiều file JPG, PNG, WEBP</p>
-              <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;" onchange="handleDirectFileSelect(this);" />
+              <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;" />
             </div>
 
             <div style="margin-top: 10px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">hoặc nhập

@@ -598,26 +598,13 @@ function setupFormListeners() {
   const form = $("#addFeedbackForm");
   const dropzone = $("#dropzone");
   const fileInput = $("#imageFileInput");
-  const pathInput = $("#imagePathInput");
-  const previewContainer = $("#imagePreviewContainer");
-  const previewImg = $("#imagePreview");
-  const removeBtn = $("#removePreviewBtn");
 
-  // Dropzone click triggers file input
-  if (dropzone && fileInput) {
-    dropzone.addEventListener("click", () => fileInput.click());
-
-    dropzone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropzone.classList.add("dragover");
-    });
-
-    dropzone.addEventListener("dragleave", () => {
-      dropzone.classList.remove("dragover");
-    });
-
+  // NOTE: Drop, click, and change events are handled by inline attributes in admin.html
+  // to avoid double-firing. Only add the drop handler here since we removed ondrop from HTML.
+  if (dropzone) {
     dropzone.addEventListener("drop", (e) => {
       e.preventDefault();
+      e.stopPropagation();
       dropzone.classList.remove("dragover");
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         if (typeof handleBatchFileSelection === "function") {
@@ -627,39 +614,14 @@ function setupFormListeners() {
     });
   }
 
-  if (fileInput) {
+  // File input change — only add if no inline onchange in HTML
+  if (fileInput && !fileInput.getAttribute("onchange")) {
     fileInput.addEventListener("change", (e) => {
       if (e.target.files && e.target.files.length > 0) {
         if (typeof handleBatchFileSelection === "function") {
           handleBatchFileSelection(e.target.files);
         }
       }
-    });
-  }
-
-  // Manual Path Input Change
-  if (pathInput) {
-    pathInput.addEventListener("input", (e) => {
-      const val = e.target.value.trim();
-      if (val && !currentPreviewBase64) {
-        previewImg.src = val;
-        previewContainer.style.display = "block";
-      }
-    });
-  }
-
-  // Remove preview
-  if (removeBtn) {
-    removeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      currentPreviewBase64 = "";
-      window.currentPreviewBase64 = "";
-      window.selectedRawFile = null;
-      selectedRawFile = null;
-      pathInput.value = "";
-      fileInput.value = "";
-      previewImg.src = "";
-      previewContainer.style.display = "none";
     });
   }
 
@@ -671,26 +633,6 @@ function setupFormListeners() {
       resetForm();
     });
   }
-}
-
-function handleFileSelect(file) {
-  if (!file || !file.type.startsWith("image/")) {
-    showToast("Vui lòng chọn file hình ảnh!");
-    return;
-  }
-
-  selectedRawFile = file;
-  window.selectedRawFile = file;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    currentPreviewBase64 = e.target.result;
-    window.currentPreviewBase64 = e.target.result;
-    $("#imagePreview").src = currentPreviewBase64;
-    $("#imagePreviewContainer").style.display = "block";
-    $("#imagePathInput").value = `[Ảnh tải lên: ${file.name}]`;
-  };
-  reader.readAsDataURL(file);
 }
 
 function resetForm() {

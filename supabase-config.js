@@ -122,7 +122,10 @@ async function addMultipleSupabaseFeedbacks(itemsArray, filesArray = []) {
       if (file) {
         try {
           const uploadedUrl = await uploadImageToSupabase(file);
-          if (uploadedUrl) imageUrl = uploadedUrl;
+          if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+            item.path = uploadedUrl; // Update in-memory path to Supabase Public URL
+          }
         } catch (e) {
           console.warn("Storage upload fallback for item " + i, e);
         }
@@ -142,6 +145,15 @@ async function addMultipleSupabaseFeedbacks(itemsArray, filesArray = []) {
       .select();
 
     if (error) throw error;
+
+    if (data && data.length === itemsArray.length) {
+      for (let i = 0; i < data.length; i++) {
+        itemsArray[i].id = data[i].id;
+        itemsArray[i].path = data[i].path;
+        itemsArray[i].isSupabase = true;
+      }
+    }
+
     return data;
   } catch (err) {
     console.error("Lỗi thêm feedback hàng loạt Supabase:", err.message);
