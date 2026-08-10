@@ -15,7 +15,7 @@ function loadDynamicCategories() {
   } catch (e) {}
 
   if (customCats.length > 0) {
-    CATEGORIES = customCats;
+    CATEGORIES = customCats.map(c => c.name === "Đao Bướm" ? { ...c, name: "Dao Bướm" } : c);
   } else if (typeof CATEGORY_DATA !== "undefined" && Array.isArray(CATEGORY_DATA)) {
     CATEGORIES = CATEGORY_DATA;
   } else {
@@ -23,7 +23,7 @@ function loadDynamicCategories() {
     CATEGORIES = [
       { id: "m4a1", name: "M4A1 Battle of Faith", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
       { id: "ak", name: "Ak Riu Thiêng", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
-      { id: "dao", name: "Đao Bướm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
+      { id: "dao", name: "Dao Bướm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
       { id: "du", name: "Dù Saitama", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
       { id: "m700", name: "M700 ELIZABETH", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
     ];

@@ -21,7 +21,7 @@ const CATEGORY_DATA = [
   },
   {
     id: "dao",
-    name: "Đao Bướm",
+    name: "Dao Bướm",
     count: 0,
     accent: "#a855f7",
     glow: "rgba(168, 85, 247, 0.4)",
