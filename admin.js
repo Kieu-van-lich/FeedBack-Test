@@ -164,13 +164,25 @@ async function loadAdminItems() {
   if (!Array.isArray(customData)) customData = [];
   if (!Array.isArray(baseData)) baseData = [];
 
-  adminItems = [...supaItems, ...customData, ...baseData];
+  const combined = [...supaItems, ...customData, ...baseData];
+  
+  adminItems = [];
+  const seenPaths = new Set();
+  for (const item of combined) {
+    const p = item.path || "";
+    if (p && !seenPaths.has(p)) {
+      seenPaths.add(p);
+      adminItems.push(item);
+    } else if (!p) {
+      adminItems.push(item);
+    }
+  }
 }
 
 // Save Custom Items to LocalStorage
 function saveCustomItems() {
   try {
-    const customOnly = adminItems.filter(item => !item.isBase || item.isEdited);
+    const customOnly = adminItems.filter(item => (!item.isBase && !item.isSupabase) || item.isEdited);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(customOnly));
   } catch (e) {
     console.warn("LocalStorage save error (quota limit), items preserved in memory:", e);
@@ -533,19 +545,32 @@ window.editFeedbackItem = function (id) {
 
 window.deleteFeedbackItem = async function (id) {
   if (confirm("Bạn có chắc chắn muốn xóa feedback này khỏi CSDL?")) {
-    if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured()) {
+    const itemToDelete = adminItems.find(i => i.id === id);
+    const targetPath = itemToDelete ? itemToDelete.path : null;
+    let supaDeleted = false;
+
+    if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && itemToDelete && itemToDelete.isSupabase) {
       const ok = await deleteSupabaseFeedback(id);
       if (ok) {
         showToast("Đã xóa feedback khỏi Supabase!");
-        await loadAdminItems();
-        renderAllAdmin();
-        return;
+        supaDeleted = true;
       }
     }
 
-    adminItems = adminItems.filter(i => i.id !== id);
+    // Always aggressively clean up local duplicates regardless of Supabase success
+    if (targetPath) {
+      adminItems = adminItems.filter(i => i.id !== id && i.path !== targetPath);
+    } else {
+      adminItems = adminItems.filter(i => i.id !== id);
+    }
+    
     saveCustomItems();
-    showToast("Đã xóa feedback khỏi danh sách!");
+
+    if (supaDeleted) {
+      await loadAdminItems();
+    }
+    
+    showToast("Đã xóa feedback thành công!");
     renderAllAdmin();
   }
 };

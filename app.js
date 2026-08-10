@@ -107,11 +107,24 @@ function getRawFeedbackData() {
     console.error("Error reading custom_feedback_data:", e);
   }
 
-  if (supaData.length > 0) {
-    return [...supaData, ...customData, ...baseData];
+  const combined = supaData.length > 0 
+    ? [...supaData, ...customData, ...baseData]
+    : [...customData, ...baseData];
+
+  const uniqueItems = [];
+  const seenPaths = new Set();
+  
+  for (const item of combined) {
+    const p = item.path || item.src || "";
+    if (p && !seenPaths.has(p)) {
+      seenPaths.add(p);
+      uniqueItems.push(item);
+    } else if (!p) {
+      uniqueItems.push(item);
+    }
   }
 
-  return [...customData, ...baseData];
+  return uniqueItems;
 }
 
 // Async loader if Supabase is connected
