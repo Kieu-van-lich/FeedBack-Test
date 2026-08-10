@@ -454,6 +454,9 @@ function setupSupabaseUI() {
         await loadAdminItems();
         renderAllAdmin();
       }
+    });
+  }
+
   // Seed existing feedbackData items into Supabase
   const seedBtn = $("#seedSupabaseBtn");
   if (seedBtn) {
