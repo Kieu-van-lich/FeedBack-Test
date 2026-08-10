@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Admin Security PIN Lock Management
 function getAdminPin() {
-  return localStorage.getItem("admin_pin_code") || "1234";
+  return localStorage.getItem("admin_pin_code") || "090800";
 }
 
 function setupAdminSecurity() {
@@ -61,8 +61,8 @@ function setupAdminSecurity() {
     const entered = pinInput.value.trim();
     const correctPin = getAdminPin();
 
-    // Accept both configured PIN and default master PIN '1234'
-    if (entered === correctPin || entered === "1234") {
+    // Accept both configured PIN and default master PIN '090800'
+    if (entered === correctPin || entered === "090800") {
       sessionStorage.setItem("admin_auth_session", "true");
       if (overlay) overlay.style.setProperty("display", "none", "important");
       if (errorMsg) errorMsg.style.display = "none";

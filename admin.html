@@ -491,7 +491,7 @@
       </div>
 
       <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Xác Thực Quyền Admin</h2>
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">Vui lòng nhập Mã PIN Bảo Mật (Mã mặc định: <strong style="color: var(--accent-primary);">1234</strong>) để truy cập trang quản trị.</p>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">Vui lòng nhập Mã PIN Bảo Mật (Mã mặc định: <strong style="color: var(--accent-primary);">090800</strong>) để truy cập trang quản trị.</p>
 
       <form id="pinAuthForm" onsubmit="return handleDirectPinUnlock(event);">
         <div style="margin-bottom: 20px;">
@@ -530,9 +530,9 @@
       if (!input) return false;
 
       var val = (input.value || "").trim();
-      var savedPin = localStorage.getItem("admin_pin_code") || "1234";
+      var savedPin = localStorage.getItem("admin_pin_code") || "090800";
 
-      if (val === "1234" || val === savedPin) {
+      if (val === "090800" || val === savedPin) {
         sessionStorage.setItem("admin_auth_session", "true");
         if (overlay) overlay.style.display = "none";
         if (err) err.style.display = "none";
@@ -856,7 +856,7 @@ CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (
           <form id="changePinForm" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end;">
             <div>
               <label class="form-label">Mã PIN Hiện Tại *</label>
-              <input type="password" id="currentPinInput" class="form-input" placeholder="Mã PIN cũ (mặc định: 1234)" required />
+              <input type="password" id="currentPinInput" class="form-input" placeholder="Mã PIN cũ (mặc định: 090800)" required />
             </div>
             <div>
               <label class="form-label">Mã PIN Mới *</label>
