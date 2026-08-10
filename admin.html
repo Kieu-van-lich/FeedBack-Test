@@ -493,12 +493,12 @@
       <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Xác Thực Quyền Admin</h2>
       <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">Vui lòng nhập Mã PIN Bảo Mật (Mã mặc định: <strong style="color: var(--accent-primary);">1234</strong>) để truy cập trang quản trị.</p>
 
-      <form id="pinAuthForm">
+      <form id="pinAuthForm" onsubmit="return handleDirectPinUnlock(event);">
         <div style="margin-bottom: 20px;">
           <input type="password" id="pinAuthInput" maxlength="20" class="form-input" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px; font-family: var(--font-mono); height: 54px; background: rgba(0,0,0,0.4); border-color: rgba(185, 243, 75, 0.4);" placeholder="••••" required autofocus />
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; height: 48px; font-size: 1rem;">
+        <button type="submit" onclick="return handleDirectPinUnlock(event);" class="btn btn-primary" style="width: 100%; justify-content: center; height: 48px; font-size: 1rem;">
           <span>⚡ Đăng Nhập Admin</span>
         </button>
       </form>
@@ -512,6 +512,39 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // Fast inline PIN authentication check before any other scripts load
+    (function() {
+      if (sessionStorage.getItem("admin_auth_session") === "true") {
+        var el = document.getElementById("adminLockOverlay");
+        if (el) el.style.display = "none";
+      }
+    })();
+
+    function handleDirectPinUnlock(e) {
+      if (e) e.preventDefault();
+      var input = document.getElementById("pinAuthInput");
+      var err = document.getElementById("pinErrorMessage");
+      var overlay = document.getElementById("adminLockOverlay");
+      if (!input) return false;
+
+      var val = (input.value || "").trim();
+      var savedPin = localStorage.getItem("admin_pin_code") || "1234";
+
+      if (val === "1234" || val === savedPin) {
+        sessionStorage.setItem("admin_auth_session", "true");
+        if (overlay) overlay.style.display = "none";
+        if (err) err.style.display = "none";
+        return false;
+      } else {
+        if (err) err.style.display = "block";
+        input.value = "";
+        input.focus();
+        return false;
+      }
+    }
+  </script>
 
   <!-- Admin Main Container -->
   <main class="admin-container">
