@@ -609,6 +609,17 @@
       }
     }
 
+    function removePreviewImage() {
+      window.currentPreviewBase64 = null;
+      window.selectedRawFile = null;
+      var pathInp = document.getElementById("imagePathInput");
+      if (pathInp) pathInp.value = "";
+      var fileInp = document.getElementById("imageFileInput");
+      if (fileInp) fileInp.value = "";
+      var container = document.getElementById("imagePreviewContainer");
+      if (container) container.style.display = "none";
+    }
+
     async function handleAdminFormSubmit(e) {
       if (e) e.preventDefault();
 
@@ -806,7 +817,7 @@
 
             <div class="upload-preview" id="imagePreviewContainer">
               <img id="imagePreview" src="" alt="Preview" />
-              <button type="button" class="remove-preview-btn" id="removePreviewBtn" title="Xóa ảnh">✕</button>
+              <button type="button" class="remove-preview-btn" id="removePreviewBtn" onclick="removePreviewImage()" title="Xóa ảnh">✕</button>
             </div>
           </div>
 

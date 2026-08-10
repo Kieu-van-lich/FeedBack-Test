@@ -108,7 +108,7 @@ function getRawFeedbackData() {
   }
 
   if (supaData.length > 0) {
-    return [...supaData, ...customData];
+    return [...supaData, ...customData, ...baseData];
   }
 
   return [...customData, ...baseData];

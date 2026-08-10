@@ -133,8 +133,6 @@ async function loadAdminItems() {
         isSupabase: true
       }));
       updateSupabaseBadge(true);
-      adminItems = supaItems;
-      return;
     }
   }
 
@@ -161,7 +159,7 @@ async function loadAdminItems() {
     console.error("Error reading custom feedback items:", e);
   }
 
-  adminItems = [...customData, ...baseData];
+  adminItems = [...supaItems, ...customData, ...baseData];
 }
 
 // Save Custom Items to LocalStorage
@@ -361,88 +359,7 @@ function setupFormListeners() {
     });
   }
 
-  // Form Submit
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const category = $("#categorySelect").value;
-      const title = $("#titleInput").value.trim();
-      const pathVal = $("#imagePathInput").value.trim();
-
-      const base64 = window.currentPreviewBase64 || currentPreviewBase64 || "";
-      const rawFile = window.selectedRawFile || selectedRawFile;
-      const finalPath = base64 || pathVal;
-
-      if (!finalPath && !rawFile) {
-        showToast("Vui lòng tải ảnh lên hoặc nhập đường dẫn ảnh!");
-        return;
-      }
-
-      // 1. Try Supabase Mode Active
-      if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured()) {
-        try {
-          showToast("⏳ Đang tải dữ liệu lên Supabase...");
-          if (editingId) {
-            await updateSupabaseFeedback(editingId, {
-              category: category,
-              title: title || `${category} — Feedback`,
-              path: finalPath
-            });
-            showToast("⚡ Đã cập nhật feedback trên Supabase!");
-          } else {
-            await addSupabaseFeedback(
-              { category, title: title || `${category} — Feedback`, path: finalPath },
-              rawFile
-            );
-            showToast("⚡ Đã thêm feedback mới vào Supabase thành công!");
-          }
-          await loadAdminItems();
-          resetForm();
-          renderAllAdmin();
-          return;
-        } catch (err) {
-          console.warn("Supabase save error, fallback to local:", err);
-          showToast(`⚠️ Supabase chưa khởi tạo bảng, đang lưu tạm vào máy...`);
-        }
-      }
-
-      // 2. LocalStorage Fallback Mode
-      if (editingId) {
-        // Update existing
-        const index = adminItems.findIndex(item => item.id === editingId);
-        if (index !== -1) {
-          adminItems[index] = {
-            ...adminItems[index],
-            category: category,
-            title: title || `${category} — Feedback`,
-            path: finalPath,
-            filename: base64 ? "uploaded_image.png" : finalPath.split("/").pop(),
-            isEdited: true
-          };
-          showToast("⚡ Đã cập nhật feedback thành công!");
-        }
-      } else {
-        // Add new
-        const newItem = {
-          id: `custom-${Date.now()}`,
-          path: finalPath,
-          category: category,
-          filename: base64 ? `upload-${Date.now()}.png` : finalPath.split("/").pop(),
-          title: title || `${category} — Feedback mới`,
-          date: new Date().toISOString(),
-          isBase: false
-        };
-
-        adminItems.unshift(newItem);
-        showToast("⚡ Đã lưu feedback mới thành công!");
-      }
-
-      saveCustomItems();
-      resetForm();
-      renderAllAdmin();
-    });
-  }
+  // Form Submit is now handled by handleAdminFormSubmit inline in admin.html
 
   // Cancel edit button
   if ($("#cancelEditBtn")) {
