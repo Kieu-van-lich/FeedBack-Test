@@ -166,8 +166,12 @@ async function loadAdminItems() {
 
 // Save Custom Items to LocalStorage
 function saveCustomItems() {
-  const customOnly = adminItems.filter(item => !item.isBase || item.isEdited);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(customOnly));
+  try {
+    const customOnly = adminItems.filter(item => !item.isBase || item.isEdited);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customOnly));
+  } catch (e) {
+    console.warn("LocalStorage save error (quota limit), items preserved in memory:", e);
+  }
 }
 
 // 3. Render All Dashboard Components
