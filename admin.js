@@ -153,11 +153,16 @@ async function loadAdminItems() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      customData = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) customData = parsed;
     }
   } catch (e) {
     console.error("Error reading custom feedback items:", e);
   }
+
+  if (!Array.isArray(supaItems)) supaItems = [];
+  if (!Array.isArray(customData)) customData = [];
+  if (!Array.isArray(baseData)) baseData = [];
 
   adminItems = [...supaItems, ...customData, ...baseData];
 }

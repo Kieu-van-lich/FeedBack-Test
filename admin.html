@@ -768,7 +768,7 @@
           <span style="font-size: 0.75rem; color: var(--text-muted);">Tải ảnh & lưu</span>
         </div>
 
-        <form id="addFeedbackForm" onsubmit="return handleAdminFormSubmit(event);">
+        <form id="addFeedbackForm" onsubmit="handleAdminFormSubmit(event); return false;">
           <input type="hidden" id="editItemId" value="" />
 
           <!-- Category Selection -->
@@ -1045,9 +1045,9 @@ CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=2"></script>
-  <script src="data.js?v=2"></script>
-  <script src="admin.js?v=2"></script>
+  <script src="supabase-config.js?v=3"></script>
+  <script src="data.js?v=3"></script>
+  <script src="admin.js?v=3"></script>
 </body>
 
 </html>
