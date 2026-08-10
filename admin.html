@@ -608,6 +608,63 @@
         reader.readAsDataURL(file);
       }
     }
+
+    async function handleAdminFormSubmit(e) {
+      if (e) e.preventDefault();
+
+      var catSelect = document.getElementById("categorySelect");
+      var titleInp = document.getElementById("titleInput");
+      var pathInp = document.getElementById("imagePathInput");
+
+      var category = catSelect ? catSelect.value : "M4A1 Battle of Faith";
+      var title = titleInp ? titleInp.value.trim() : "";
+      var pathVal = pathInp ? pathInp.value.trim() : "";
+
+      var base64 = window.currentPreviewBase64 || "";
+      var finalPath = base64 || pathVal;
+
+      if (!finalPath && !window.selectedRawFile) {
+        if (typeof showToast === "function") showToast("Vui lòng chọn/kéo thả ảnh hoặc nhập đường dẫn!");
+        return false;
+      }
+
+      var newItem = {
+        id: "custom-" + Date.now(),
+        path: finalPath,
+        category: category,
+        title: title || (category + " — Feedback"),
+        filename: base64 ? ("upload-" + Date.now() + ".jpg") : (finalPath.split("/").pop() || "image.jpg"),
+        date: new Date().toISOString(),
+        isBase: false
+      };
+
+      if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
+        adminItems.unshift(newItem);
+      }
+
+      try {
+        var rawCustom = localStorage.getItem("custom_feedback_data");
+        var customList = rawCustom ? JSON.parse(rawCustom) : [];
+        customList.unshift(newItem);
+        localStorage.setItem("custom_feedback_data", JSON.stringify(customList));
+      } catch (err) {
+        console.warn("LocalStorage save notice:", err);
+      }
+
+      if (typeof showToast === "function") showToast("⚡ Đã lưu feedback mới thành công!");
+      if (typeof resetForm === "function") resetForm();
+      if (typeof renderAllAdmin === "function") renderAllAdmin();
+
+      if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && typeof addSupabaseFeedback === "function") {
+        try {
+          addSupabaseFeedback({ category: category, title: newItem.title, path: finalPath }, window.selectedRawFile);
+        } catch (err) {
+          console.warn("Supabase background upload notice:", err);
+        }
+      }
+
+      return false;
+    }
   </script>
 
   <!-- Admin Main Container -->
@@ -700,7 +757,7 @@
           <span style="font-size: 0.75rem; color: var(--text-muted);">Tải ảnh & lưu</span>
         </div>
 
-        <form id="addFeedbackForm">
+        <form id="addFeedbackForm" onsubmit="return handleAdminFormSubmit(event);">
           <input type="hidden" id="editItemId" value="" />
 
           <!-- Category Selection -->
