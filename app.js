@@ -5,63 +5,32 @@
  */
 
 // 1. Core Category Definitions & Weapon Metadata
-const CATEGORIES = [
-  {
-    id: "m4a1",
-    name: "M4A1 Battle of Faith",
-    short: "M4",
-    tier: "Thần thoại",
-    count: 0,
-    accent: "#ff3366",
-    glow: "rgba(255, 51, 102, 0.4)",
-    dim: "rgba(255, 51, 102, 0.12)",
-    image: "pictures/thẻ/M4A1.jpg"
-  },
-  {
-    id: "ak",
-    name: "Ak Riu Thiêng",
-    short: "AR",
-    tier: "Huyền thoại",
-    count: 0,
-    accent: "#f59e0b",
-    glow: "rgba(245, 158, 11, 0.4)",
-    dim: "rgba(245, 158, 11, 0.12)",
-    image: "pictures/thẻ/AK Rìu Thiêng.jpg"
-  },
-  {
-    id: "dao",
-    name: "Đao Bướm",
-    short: "DB",
-    tier: "Cực hiếm",
-    count: 0,
-    accent: "#a855f7",
-    glow: "rgba(168, 85, 247, 0.4)",
-    dim: "rgba(168, 85, 247, 0.12)",
-    image: "pictures/thẻ/dao bướm.jpg"
-  },
-  {
-    id: "du",
-    name: "Dù Saitama",
-    short: "DS",
-    tier: "Hiếm",
-    count: 0,
-    accent: "#00f0ff",
-    glow: "rgba(0, 240, 255, 0.4)",
-    dim: "rgba(0, 240, 255, 0.12)",
-    image: "pictures/thẻ/Dù Saitama.jpg"
-  },
-  {
-    id: "m700",
-    name: "M700 ELIZABETH",
-    short: "M7",
-    tier: "Độc quyền",
-    count: 0,
-    accent: "#10b981",
-    glow: "rgba(16, 185, 129, 0.4)",
-    dim: "rgba(16, 185, 129, 0.12)",
-    image: "pictures/thẻ/M700.jpg"
+let CATEGORIES = [];
+
+function loadDynamicCategories() {
+  let customCats = [];
+  try {
+    const raw = localStorage.getItem("custom_categories_data");
+    if (raw) customCats = JSON.parse(raw);
+  } catch (e) {}
+
+  if (customCats.length > 0) {
+    CATEGORIES = customCats;
+  } else if (typeof CATEGORY_DATA !== "undefined" && Array.isArray(CATEGORY_DATA)) {
+    CATEGORIES = CATEGORY_DATA;
+  } else {
+    // Fallback if data.js is old
+    CATEGORIES = [
+      { id: "m4a1", name: "M4A1 Battle of Faith", short: "M4", tier: "Thần thoại", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
+      { id: "ak", name: "Ak Riu Thiêng", short: "AR", tier: "Huyền thoại", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
+      { id: "dao", name: "Đao Bướm", short: "DB", tier: "Cực hiếm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
+      { id: "du", name: "Dù Saitama", short: "DS", tier: "Hiếm", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
+      { id: "m700", name: "M700 ELIZABETH", short: "M7", tier: "Độc quyền", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
+    ];
   }
-];
+}
+loadDynamicCategories();
+
 
 // Fallback demo images if feedbackData is empty
 const DEMO_IMAGES = [
@@ -175,16 +144,23 @@ function getRealItems() {
   }
 
   return combined.map((item, index) => {
-    let catId = "demo";
+    let catId = "other";
     let catName = item.category || "Khác";
     let lcCat = catName.toLowerCase();
-
-    if (lcCat.includes("m4a1")) catId = "m4a1";
-    else if (lcCat.includes("ak")) catId = "ak";
-    else if (lcCat.includes("dao")) catId = "dao";
-    else if (lcCat.includes("dù")) catId = "du";
-    else if (lcCat.includes("m700")) catId = "m700";
-    else if (item.categoryId) catId = item.categoryId;
+    
+    const foundCat = CATEGORIES.find(c => lcCat === c.name.toLowerCase() || lcCat.includes(c.name.toLowerCase()));
+    
+    // For backward compatibility with old data strings
+    if (!foundCat) {
+      if (lcCat.includes("m4a1")) catId = "m4a1";
+      else if (lcCat.includes("ak")) catId = "ak";
+      else if (lcCat.includes("dao")) catId = "dao";
+      else if (lcCat.includes("dù")) catId = "du";
+      else if (lcCat.includes("m700")) catId = "m700";
+      else if (item.categoryId) catId = item.categoryId;
+    } else {
+      catId = foundCat.id;
+    }
 
     return {
       id: item.id || `fb-${index}`,

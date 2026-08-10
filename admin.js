@@ -10,14 +10,42 @@ const STORAGE_KEY = "custom_feedback_data";
 let adminItems = [];
 let editingId = null;
 let currentPreviewBase64 = "";
-let selectedRawFile = null; // Stores File object for Supabase Storage upload
+let selectedRawFile = null;
 
+let CATEGORIES = [];
+
+function loadDynamicCategoriesAdmin() {
+  let customCats = [];
+  try {
+    const raw = localStorage.getItem("custom_categories_data");
+    if (raw) customCats = JSON.parse(raw);
+  } catch (e) {}
+
+  if (customCats.length > 0) {
+    CATEGORIES = customCats;
+  } else if (typeof CATEGORY_DATA !== "undefined" && Array.isArray(CATEGORY_DATA)) {
+    CATEGORIES = CATEGORY_DATA;
+  } else {
+    CATEGORIES = [
+      { id: "m4a1", name: "M4A1 Battle of Faith", short: "M4", tier: "Thần thoại", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
+      { id: "ak", name: "Ak Riu Thiêng", short: "AR", tier: "Huyền thoại", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
+      { id: "dao", name: "Đao Bướm", short: "DB", tier: "Cực hiếm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
+      { id: "du", name: "Dù Saitama", short: "DS", tier: "Hiếm", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
+      { id: "m700", name: "M700 ELIZABETH", short: "M7", tier: "Độc quyền", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
+    ];
+  }
+}
+
+function saveDynamicCategoriesAdmin() {
+  localStorage.setItem("custom_categories_data", JSON.stringify(CATEGORIES));
+}
 // Helper Selectors
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
 
 // 1. Initialize Admin Panel
 document.addEventListener("DOMContentLoaded", async () => {
+  loadDynamicCategoriesAdmin();
   setupAdminSecurity();
   setupSupabaseUI();
   try {
@@ -191,37 +219,211 @@ function saveCustomItems() {
 
 // 3. Render All Dashboard Components
 function renderAllAdmin() {
+  renderCategoriesAdmin();
   renderStats();
   renderTable();
 }
 
 // Render Stats Cards
 function renderStats() {
+  const grid = $("#adminStatsGrid");
+  if (!grid) return;
+  
   const total = adminItems.length;
-  $("#statTotal").textContent = total;
-
-  let m4Count = 0;
-  let akCount = 0;
-  let daoCount = 0;
-  let duCount = 0;
-  let m700Count = 0;
-
+  
+  // Calculate counts per dynamic category
+  CATEGORIES.forEach(cat => { cat.count = 0; });
+  let otherCount = 0;
+  
   adminItems.forEach(item => {
-    const cat = (item.category || "").toLowerCase();
-    if (cat.includes("m4a1")) m4Count++;
-    else if (cat.includes("ak")) akCount++;
-    else if (cat.includes("dao")) daoCount++;
-    else if (cat.includes("dù")) duCount++;
-    else if (cat.includes("m700")) m700Count++;
+    const catName = (item.category || "").toLowerCase();
+    const foundCat = CATEGORIES.find(c => catName === c.name.toLowerCase() || catName.includes(c.name.toLowerCase()));
+    if (foundCat) {
+      foundCat.count++;
+    } else {
+      otherCount++;
+    }
   });
 
-  $("#statM4").textContent = m4Count;
-  $("#statAk").textContent = akCount;
-  $("#statDao").textContent = daoCount;
-  $("#statDu").textContent = duCount;
-  $("#statM700").textContent = m700Count;
-  $("#tableItemCount").textContent = total;
+  let html = `
+    <div class="stat-card">
+      <div class="stat-card-title">Tổng Feedback</div>
+      <div class="stat-card-value">${total}</div>
+      <div class="stat-card-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      </div>
+    </div>
+  `;
+  
+  CATEGORIES.forEach(cat => {
+    html += `
+      <div class="stat-card">
+        <div class="stat-card-title">${cat.name}</div>
+        <div class="stat-card-value" style="color: ${cat.accent};">${cat.count}</div>
+        <div class="stat-card-badge" style="color: ${cat.accent};">★</div>
+      </div>
+    `;
+  });
+  
+  if (otherCount > 0) {
+    html += `
+      <div class="stat-card">
+        <div class="stat-card-title">Khác</div>
+        <div class="stat-card-value" style="color: #94a3b8;">${otherCount}</div>
+        <div class="stat-card-badge" style="color: #94a3b8;">#</div>
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+  
+  // Also populate dropdowns
+  const catSelect = $("#categorySelect");
+  if (catSelect) {
+    catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.name}">${c.name}</option>`).join("") + `<option value="Giao dịch chung">Khác / Giao Dịch Chung</option>`;
+  }
+  
+  const adminCatFilter = $("#adminCatFilter");
+  if (adminCatFilter) {
+    const currentVal = adminCatFilter.value;
+    adminCatFilter.innerHTML = `<option value="all">Tất cả danh mục</option>` + CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+    adminCatFilter.value = currentVal || "all";
+  }
+
+  const tableItemCount = $("#tableItemCount");
+  if (tableItemCount) tableItemCount.textContent = total;
 }
+
+// Render Categories Management Table
+function renderCategoriesAdmin() {
+  const tbody = $("#categoryTableBody");
+  if (!tbody) return;
+  
+  tbody.innerHTML = CATEGORIES.map(cat => `
+    <tr>
+      <td style="font-weight: 600;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="${cat.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;" onerror="this.src='assets/demo/feedback-01.png'" />
+          ${cat.name}
+        </div>
+      </td>
+      <td>
+        <span style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">${cat.short}</span>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">${cat.tier}</div>
+      </td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 16px; height: 16px; border-radius: 50%; background: ${cat.accent}; box-shadow: 0 0 8px ${cat.glow};"></div>
+          <span style="font-family: monospace; font-size: 0.85rem;">${cat.accent}</span>
+        </div>
+      </td>
+      <td style="text-align: right;">
+        <div class="action-btn-group" style="justify-content: flex-end;">
+          <button class="btn-icon edit" onclick="editCategoryAdmin('${cat.id}')" title="Sửa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="btn-icon danger" onclick="deleteCategoryAdmin('${cat.id}')" title="Xóa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+window.handleCategorySubmit = function(e) {
+  if (e) e.preventDefault();
+  const idInput = $("#editCatId").value;
+  const name = $("#catNameInput").value.trim();
+  const short = $("#catShortInput").value.trim();
+  const tier = $("#catTierInput").value.trim();
+  const accent = $("#catColorInput").value;
+  const image = $("#catImageInput").value.trim();
+  
+  if (!name || !short || !accent || !image) {
+    showToast("Vui lòng điền đủ các trường bắt buộc!");
+    return;
+  }
+  
+  // Convert hex to rgba helper
+  let r = 255, g = 255, b = 255;
+  if (accent.length === 7) {
+    r = parseInt(accent.slice(1, 3), 16);
+    g = parseInt(accent.slice(3, 5), 16);
+    b = parseInt(accent.slice(5, 7), 16);
+  }
+  const glow = `rgba(${r}, ${g}, ${b}, 0.4)`;
+  const dim = `rgba(${r}, ${g}, ${b}, 0.12)`;
+  
+  if (idInput) {
+    // Edit existing
+    const idx = CATEGORIES.findIndex(c => c.id === idInput);
+    if (idx !== -1) {
+      CATEGORIES[idx] = { ...CATEGORIES[idx], name, short, tier, accent, glow, dim, image };
+      showToast("Đã cập nhật danh mục!");
+    }
+  } else {
+    // Add new
+    const newId = "cat_" + Date.now().toString(36);
+    CATEGORIES.push({
+      id: newId, name, short, tier, count: 0, accent, glow, dim, image
+    });
+    showToast("Đã thêm danh mục mới!");
+  }
+  
+  saveDynamicCategoriesAdmin();
+  $("#categoryManageForm").reset();
+  $("#editCatId").value = "";
+  $("#saveCatBtn").textContent = "Thêm Danh Mục Mới";
+  $("#cancelCatEditBtn").style.display = "none";
+  renderAllAdmin();
+};
+
+window.editCategoryAdmin = function(id) {
+  const cat = CATEGORIES.find(c => c.id === id);
+  if (!cat) return;
+  $("#editCatId").value = cat.id;
+  $("#catNameInput").value = cat.name;
+  $("#catShortInput").value = cat.short;
+  $("#catTierInput").value = cat.tier || "";
+  $("#catColorInput").value = cat.accent;
+  $("#catImageInput").value = cat.image;
+  
+  $("#saveCatBtn").textContent = "Lưu Thay Đổi";
+  $("#cancelCatEditBtn").style.display = "inline-flex";
+  $("#catNameInput").focus();
+  window.scrollTo({ top: $("#categoryManageForm").offsetTop - 100, behavior: 'smooth' });
+};
+
+window.deleteCategoryAdmin = function(id) {
+  if (CATEGORIES.length <= 1) {
+    showToast("Phải có ít nhất 1 danh mục!");
+    return;
+  }
+  if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+    CATEGORIES = CATEGORIES.filter(c => c.id !== id);
+    saveDynamicCategoriesAdmin();
+    showToast("Đã xóa danh mục!");
+    renderAllAdmin();
+  }
+};
+
+$("#cancelCatEditBtn")?.addEventListener("click", () => {
+  $("#categoryManageForm").reset();
+  $("#editCatId").value = "";
+  $("#saveCatBtn").textContent = "Thêm Danh Mục Mới";
+  $("#cancelCatEditBtn").style.display = "none";
+});
 
 // 4. Render Admin Table List
 function renderTable() {
@@ -232,17 +434,16 @@ function renderTable() {
   const catFilter = $("#adminCatFilter") ? $("#adminCatFilter").value : "all";
 
   let filtered = adminItems.filter(item => {
-    const cat = (item.category || "").toLowerCase();
+    const catNameStr = (item.category || "").toLowerCase();
     const fname = (item.filename || item.path || "").toLowerCase();
     const title = (item.title || "").toLowerCase();
 
     // Category filter
     if (catFilter !== "all") {
-      if (catFilter === "m4a1" && !cat.includes("m4a1")) return false;
-      if (catFilter === "ak" && !cat.includes("ak")) return false;
-      if (catFilter === "dao" && !cat.includes("dao")) return false;
-      if (catFilter === "du" && !cat.includes("dù")) return false;
-      if (catFilter === "m700" && !cat.includes("m700")) return false;
+      const targetCat = CATEGORIES.find(c => c.id === catFilter);
+      if (targetCat && !catNameStr.includes(targetCat.name.toLowerCase())) {
+        return false;
+      }
     }
 
     // Keyword filter
@@ -601,7 +802,8 @@ function setupDatabaseSync() {
       filename: item.filename || (item.path ? item.path.split("/").pop() : "image.jpg")
     }));
 
-    const jsContent = `const feedbackData = ${JSON.stringify(exportArray, null, 2)};\n`;
+    let jsContent = `const CATEGORY_DATA = ${JSON.stringify(CATEGORIES, null, 2)};\n\n`;
+    jsContent += `const feedbackData = ${JSON.stringify(exportArray, null, 2)};\n`;
     downloadFile(jsContent, "data.js", "text/javascript");
     showToast("Đã tải xuống file data.js thành công!");
   });

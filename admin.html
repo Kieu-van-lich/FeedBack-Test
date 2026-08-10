@@ -707,48 +707,8 @@
     </div>
 
     <!-- Statistics Grid -->
-    <div class="admin-stats-grid">
-      <div class="stat-card">
-        <div class="stat-card-title">Tổng Feedback</div>
-        <div class="stat-card-value" id="statTotal">0</div>
-        <div class="stat-card-badge">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-title">M4A1 Battle</div>
-        <div class="stat-card-value" id="statM4" style="color: #ff3366;">0</div>
-        <div class="stat-card-badge" style="color: #ff3366;">🔥</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-title">AK Rìu Thiêng</div>
-        <div class="stat-card-value" id="statAk" style="color: #f59e0b;">0</div>
-        <div class="stat-card-badge" style="color: #f59e0b;">⚡</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-title">Đao Bướm</div>
-        <div class="stat-card-value" id="statDao" style="color: #a855f7;">0</div>
-        <div class="stat-card-badge" style="color: #a855f7;">🗡️</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-title">Dù Saitama</div>
-        <div class="stat-card-value" id="statDu" style="color: #00f0ff;">0</div>
-        <div class="stat-card-badge" style="color: #00f0ff;">🪂</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-title">M700 Elizabeth</div>
-        <div class="stat-card-value" id="statM700" style="color: #10b981;">0</div>
-        <div class="stat-card-badge" style="color: #10b981;">🎯</div>
-      </div>
+    <div class="admin-stats-grid" id="adminStatsGrid">
+      <!-- Injected by JS -->
     </div>
 
     <!-- Main Content Grid -->
@@ -775,12 +735,7 @@
           <div class="form-group">
             <label class="form-label" for="categorySelect">Danh Mục Vật Phẩm / Loại *</label>
             <select id="categorySelect" class="form-select" required>
-              <option value="M4A1 Battle of Faith">M4A1 Battle of Faith</option>
-              <option value="ak riu thiêng">AK Rìu Thiêng</option>
-              <option value="dao bướm">Đao Bướm</option>
-              <option value="dù saitama">Dù Saitama</option>
-              <option value="M700 ELIZABETH">M700 ELIZABETH</option>
-              <option value="Giao dịch chung">Khác / Giao Dịch Chung</option>
+              <!-- Injected by JS -->
             </select>
           </div>
 
@@ -863,11 +818,7 @@
 
           <select id="adminCatFilter" class="form-select" style="width: 200px;">
             <option value="all">Tất cả danh mục</option>
-            <option value="m4a1">M4A1 Battle</option>
-            <option value="ak">AK Rìu Thiêng</option>
-            <option value="dao">Đao Bướm</option>
-            <option value="du">Dù Saitama</option>
-            <option value="m700">M700 Elizabeth</option>
+            <!-- Injected by JS -->
           </select>
         </div>
 
@@ -1029,6 +980,60 @@ CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (
             <input type="file" id="importJsonInput" accept=".json" style="display: none;" />
           </div>
         </div>
+
+      <!-- Category Management Section -->
+      <div class="admin-panel" style="margin-top: 30px;">
+        <div class="admin-panel-header">
+          <h2 class="admin-panel-title">Quản Lý Danh Mục Vật Phẩm</h2>
+        </div>
+        <form id="categoryManageForm" class="admin-form" onsubmit="handleCategorySubmit(event); return false;" style="margin-bottom: 20px;">
+          <input type="hidden" id="editCatId" value="" />
+          <div class="form-group">
+            <label class="form-label" for="catNameInput">Tên Vũ Khí / Danh Mục *</label>
+            <input type="text" id="catNameInput" class="form-input" placeholder="VD: SCAR-L Máu Lạnh" required />
+          </div>
+          <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label class="form-label" for="catShortInput">Tên Viết Tắt (VD: SC) *</label>
+              <input type="text" id="catShortInput" class="form-input" placeholder="VD: SC" required />
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label class="form-label" for="catTierInput">Hạng Thẻ (Thần thoại, Huyền thoại...)</label>
+              <input type="text" id="catTierInput" class="form-input" placeholder="VD: Thần thoại" required />
+            </div>
+          </div>
+          <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label class="form-label" for="catColorInput">Màu Sắc Đại Diện (Mã Hex) *</label>
+              <input type="color" id="catColorInput" class="form-input" style="height: 48px; padding: 0 10px;" value="#ff3366" required />
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label class="form-label" for="catImageInput">Đường Dẫn Ảnh Đại Diện *</label>
+              <input type="text" id="catImageInput" class="form-input" placeholder="VD: pictures/thẻ/scar.jpg" required />
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top: 10px;">
+            <button type="submit" class="btn btn-primary" id="saveCatBtn">Thêm Danh Mục Mới</button>
+            <button type="button" class="btn btn-outline" id="cancelCatEditBtn" style="display: none;">Hủy Sửa</button>
+          </div>
+        </form>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-medium); border-radius: var(--radius-md); overflow: auto;">
+          <table class="admin-table" style="min-width: 600px;">
+            <thead>
+              <tr>
+                <th style="width: 30%;">Tên Danh Mục</th>
+                <th style="width: 25%;">Hạng / Viết Tắt</th>
+                <th style="width: 25%;">Màu Sắc</th>
+                <th style="width: 20%; text-align: right;">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody id="categoryTableBody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
 
   </main>
 
