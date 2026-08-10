@@ -86,35 +86,39 @@ let supabaseFeedbacksData = null;
 
 // Helper to get combined feedback data from Supabase, localStorage and data.js
 function getRawFeedbackData() {
-  if (supabaseFeedbacksData && Array.isArray(supabaseFeedbacksData)) {
-    return supabaseFeedbacksData;
-  }
-
   let baseData = [];
   if (typeof feedbackData !== "undefined" && Array.isArray(feedbackData)) {
     baseData = [...feedbackData];
   }
 
+  let supaData = [];
+  if (supabaseFeedbacksData && Array.isArray(supabaseFeedbacksData)) {
+    supaData = [...supabaseFeedbacksData];
+  }
+
+  let customData = [];
   try {
     const customStr = localStorage.getItem("custom_feedback_data");
     if (customStr) {
-      const customData = JSON.parse(customStr);
-      if (Array.isArray(customData)) {
-        return [...customData, ...baseData];
-      }
+      const parsed = JSON.parse(customStr);
+      if (Array.isArray(parsed)) customData = parsed;
     }
   } catch (e) {
     console.error("Error reading custom_feedback_data:", e);
   }
 
-  return baseData;
+  if (supaData.length > 0) {
+    return [...supaData, ...customData];
+  }
+
+  return [...customData, ...baseData];
 }
 
 // Async loader if Supabase is connected
 async function loadSupabaseDataIfAvailable() {
   if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured()) {
     const data = await fetchSupabaseFeedbacks();
-    if (data && Array.isArray(data)) {
+    if (data && Array.isArray(data) && data.length > 0) {
       supabaseFeedbacksData = data;
       initCategories();
       renderAll();

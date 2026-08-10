@@ -120,10 +120,11 @@ function setupAdminSecurity() {
 
 // 2. Load Combined Items (Supabase OR data.js + custom localStorage)
 async function loadAdminItems() {
+  let supaItems = [];
   if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured()) {
     const supaData = await fetchSupabaseFeedbacks();
-    if (supaData && Array.isArray(supaData)) {
-      adminItems = supaData.map(item => ({
+    if (supaData && Array.isArray(supaData) && supaData.length > 0) {
+      supaItems = supaData.map(item => ({
         id: item.id,
         path: item.path,
         category: item.category,
@@ -132,11 +133,12 @@ async function loadAdminItems() {
         isSupabase: true
       }));
       updateSupabaseBadge(true);
+      adminItems = supaItems;
       return;
     }
   }
 
-  updateSupabaseBadge(false);
+  updateSupabaseBadge(typeof isSupabaseConfigured === "function" && isSupabaseConfigured());
 
   let baseData = [];
   if (typeof feedbackData !== "undefined" && Array.isArray(feedbackData)) {
