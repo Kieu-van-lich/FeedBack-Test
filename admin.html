@@ -13,427 +13,9 @@
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css">
-
-  <style>
-    /* Admin Specific Styling Extensions */
-    .admin-body {
-      background-color: var(--bg-main);
-      min-height: 100vh;
-      padding-bottom: 60px;
-    }
-
-    .admin-nav-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: var(--radius-full);
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      background: rgba(185, 243, 75, 0.15);
-      color: var(--accent-primary);
-      border: 1px solid rgba(185, 243, 75, 0.3);
-      font-family: var(--font-mono);
-    }
-
-    .admin-container {
-      width: min(1300px, calc(100% - 40px));
-      margin-inline: auto;
-      padding-top: 100px;
-    }
-
-    .admin-header-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .admin-title-group h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .admin-title-group p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-top: 4px;
-    }
-
-    /* Admin Stats Grid */
-    .admin-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-      transition: all var(--transition-normal);
-    }
-
-    .stat-card:hover {
-      border-color: var(--border-medium);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    .stat-card-title {
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    .stat-card-value {
-      font-size: 2.2rem;
-      font-weight: 800;
-      font-family: var(--font-mono);
-      color: var(--text-main);
-      line-height: 1;
-    }
-
-    .stat-card-badge {
-      position: absolute;
-      top: 18px;
-      right: 18px;
-      width: 38px;
-      height: 38px;
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--accent-primary);
-    }
-
-    /* Admin Main Grid (Form + List) */
-    .admin-content-grid {
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 28px;
-    }
-
-    @media (max-width: 1024px) {
-      .admin-content-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .admin-panel {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .panel-header h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* Form Styles */
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 8px;
-    }
-
-    .form-input,
-    .form-select,
-    .form-textarea {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      color: var(--text-main);
-      font-size: 0.92rem;
-      transition: all var(--transition-fast);
-    }
-
-    .form-input:focus,
-    .form-select:focus,
-    .form-textarea:focus {
-      outline: none;
-      border-color: var(--accent-primary);
-      background: rgba(185, 243, 75, 0.03);
-      box-shadow: 0 0 0 3px rgba(185, 243, 75, 0.15);
-    }
-
-    .form-select option {
-      background-color: #0e1219 !important;
-      color: #ffffff !important;
-      padding: 10px;
-    }
-
-    /* Dropzone Upload */
-    .upload-dropzone {
-      border: 2px dashed rgba(185, 243, 75, 0.3);
-      border-radius: var(--radius-md);
-      padding: 24px 16px;
-      text-align: center;
-      background: rgba(185, 243, 75, 0.02);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      position: relative;
-    }
-
-    .upload-dropzone:hover,
-    .upload-dropzone.dragover {
-      border-color: var(--accent-primary);
-      background: rgba(185, 243, 75, 0.08);
-    }
-
-    .upload-dropzone svg {
-      color: var(--accent-primary);
-      margin-bottom: 10px;
-    }
-
-    .upload-preview {
-      margin-top: 14px;
-      max-height: 200px;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      border: 1px solid var(--border-medium);
-      display: none;
-      position: relative;
-    }
-
-    .upload-preview img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-
-    .remove-preview-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(0, 0, 0, 0.8);
-      color: #ff4757;
-      border: 1px solid rgba(255, 71, 87, 0.4);
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Feedback Items Table & List */
-    .admin-table-controls {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .admin-search-box {
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-    }
-
-    .admin-search-box input {
-      width: 100%;
-      padding: 10px 14px 10px 38px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-sm);
-      color: var(--text-main);
-      font-size: 0.9rem;
-    }
-
-    .admin-search-box svg {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-    }
-
-    .feedback-table-wrapper {
-      overflow-x: auto;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .admin-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    .admin-table th {
-      background: rgba(255, 255, 255, 0.04);
-      padding: 14px 16px;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .admin-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-subtle);
-      vertical-align: middle;
-    }
-
-    .admin-table tr:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .thumb-preview {
-      width: 48px;
-      height: 48px;
-      border-radius: var(--radius-sm);
-      object-fit: cover;
-      border: 1px solid var(--border-medium);
-      cursor: pointer;
-      transition: transform var(--transition-fast);
-    }
-
-    .thumb-preview:hover {
-      transform: scale(1.15);
-      border-color: var(--accent-primary);
-    }
-
-    .action-btn-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-medium);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-    }
-
-    .btn-icon.danger:hover {
-      background: rgba(239, 68, 68, 0.2);
-      color: #ef4444;
-      border-color: #ef4444;
-    }
-
-    .btn-icon.edit:hover {
-      background: rgba(0, 240, 255, 0.2);
-      color: var(--accent-cyan);
-      border-color: var(--accent-cyan);
-    }
-
-    /* Database Sync Bar */
-    .db-sync-bar {
-      margin-top: 32px;
-      background: linear-gradient(135deg, rgba(14, 18, 25, 0.9), rgba(21, 27, 36, 0.95));
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .db-sync-info h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .db-sync-info p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .db-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    /* Toast Notification */
-    .admin-toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--bg-surface-elevated);
-      border: 1px solid var(--accent-primary);
-      color: var(--text-main);
-      padding: 14px 20px;
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 10000;
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all var(--transition-bounce);
-    }
-
-    .admin-toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .admin-toast-icon {
-      color: var(--accent-primary);
-    }
-  </style>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="admin.css?v=5">
 </head>
 
 <body class="admin-body">
@@ -459,22 +41,22 @@
         </span>
       </a>
 
-      <div class="admin-nav-badge">
+      <div class="admin-nav-badge" id="adminUserBadge">
         <span class="pulse-dot"></span>
-        DATABASE ONLINE
+        CHƯA ĐĂNG NHẬP
       </div>
 
-      <div class="nav-right" style="display: flex; gap: 12px; align-items: center;">
-        <button id="lockAdminBtn" class="nav-button" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+      <div class="nav-right admin-nav-actions">
+        <button type="button" id="logoutAdminBtn" class="nav-button admin-lock-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
           </svg>
-          <span>🔒 Khóa Admin</span>
+          <span>Đăng xuất</span>
         </button>
 
-        <a href="index.html" class="nav-button"
-          style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-medium);">
+        <a href="index.html" class="nav-button admin-home-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -486,31 +68,37 @@
     </div>
   </header>
 
-  <!-- ADMIN SECURITY LOCK MODAL OVERLAY -->
-  <div id="adminLockOverlay" style="position: fixed; inset: 0; background: rgba(7, 9, 14, 0.96); backdrop-filter: blur(25px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--bg-surface-elevated); border: 1px solid var(--accent-primary); border-radius: var(--radius-lg); padding: 36px 32px; width: min(440px, 100%); box-shadow: 0 20px 50px rgba(0,0,0,0.8); text-align: center; position: relative; overflow: hidden;">
-      <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(185, 243, 75, 0.12); color: var(--accent-primary); border: 1px solid rgba(185, 243, 75, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+  <!-- ADMIN SUPABASE AUTH MODAL OVERLAY -->
+  <div id="adminLockOverlay" class="admin-lock-overlay">
+    <div class="admin-lock-card">
+      <div class="admin-lock-icon">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
 
-      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Xác Thực Quyền Admin</h2>
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">Vui lòng nhập Mã PIN Bảo Mật để truy cập trang quản trị.</p>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Đăng Nhập Quản Trị</h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 22px;">Sử dụng tài khoản Admin đã cấp quyền trên Supabase Auth để mở bảng quản trị.</p>
 
-      <form id="pinAuthForm" onsubmit="return handleDirectPinUnlock(event);">
-        <div style="margin-bottom: 20px;">
-          <input type="password" id="pinAuthInput" maxlength="20" class="form-input" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px; font-family: var(--font-mono); height: 54px; background: rgba(0,0,0,0.4); border-color: rgba(185, 243, 75, 0.4);" placeholder="••••" required autofocus />
+      <form id="authLoginForm" class="admin-auth-form">
+        <div class="admin-auth-field">
+          <label class="admin-auth-label" for="authEmailInput">Email Admin *</label>
+          <input type="email" id="authEmailInput" class="form-input admin-auth-input" placeholder="admin@example.com" autocomplete="email" required autofocus />
         </div>
 
-        <button type="submit" onclick="return handleDirectPinUnlock(event);" class="btn btn-primary" style="width: 100%; justify-content: center; height: 48px; font-size: 1rem;">
+        <div class="admin-auth-field">
+          <label class="admin-auth-label" for="authPasswordInput">Mật khẩu *</label>
+          <input type="password" id="authPasswordInput" class="form-input admin-auth-input" placeholder="Nhập mật khẩu..." autocomplete="current-password" required />
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="btn btn-primary" style="width: 100%; justify-content: center; height: 48px; font-size: 1rem; margin-top: 6px;">
           <span>⚡ Đăng Nhập Admin</span>
         </button>
       </form>
 
-      <div id="pinErrorMessage" style="color: #ef4444; font-size: 0.85rem; font-weight: 600; margin-top: 14px; display: none;">
-        ❌ Mã PIN không chính xác! Vui lòng thử lại.
+      <div id="authErrorMessage" class="admin-auth-error" role="alert">
+        ❌ Thông tin đăng nhập không chính xác!
       </div>
 
       <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
@@ -518,299 +106,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    // Fast inline PIN authentication check before any other scripts load
-    (function() {
-      if (sessionStorage.getItem("admin_auth_session") === "true") {
-        var el = document.getElementById("adminLockOverlay");
-        if (el) el.style.display = "none";
-      }
-    })();
-
-    function handleDirectPinUnlock(e) {
-      if (e) e.preventDefault();
-      var input = document.getElementById("pinAuthInput");
-      var err = document.getElementById("pinErrorMessage");
-      var overlay = document.getElementById("adminLockOverlay");
-      if (!input) return false;
-
-      var val = (input.value || "").trim();
-      var savedPin = localStorage.getItem("admin_pin_code") || "090800";
-
-      if (val === "090800" || val === savedPin) {
-        sessionStorage.setItem("admin_auth_session", "true");
-        if (overlay) overlay.style.display = "none";
-        if (err) err.style.display = "none";
-        return false;
-      } else {
-        if (err) err.style.display = "block";
-        input.value = "";
-        input.focus();
-        return false;
-      }
-    }
-
-    function compressBase64Image(base64Str, maxWidth, quality) {
-      maxWidth = maxWidth || 1000;
-      quality = quality || 0.75;
-      return new Promise(function(resolve) {
-        if (!base64Str || typeof base64Str !== "string" || !base64Str.startsWith("data:image")) {
-          resolve(base64Str);
-          return;
-        }
-        var img = new Image();
-        img.onload = function() {
-          var width = img.width;
-          var height = img.height;
-          if (width > maxWidth || height > maxWidth) {
-            if (width > height) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            } else {
-              width = Math.round((width * maxWidth) / height);
-              height = maxWidth;
-            }
-          }
-          var canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          var ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", quality));
-        };
-        img.onerror = function() { resolve(base64Str); };
-        img.src = base64Str;
-      });
-    }
-
-    window.selectedBatchFiles = [];
-
-    function handleDirectFileSelect(input) {
-      if (input && input.files && input.files.length > 0) {
-        handleBatchFileSelection(input.files);
-      } else if (input && input.name && input.type && input.type.startsWith("image/")) {
-        handleBatchFileSelection([input]);
-      }
-    }
-
-    async function handleBatchFileSelection(fileList) {
-      if (!fileList || fileList.length === 0) return;
-      var files = Array.from(fileList).filter(function(f) { return f && f.type && f.type.startsWith("image/"); });
-      if (files.length === 0) {
-        if (typeof showToast === "function") showToast("Vui lòng chọn các file định dạng hình ảnh!");
-        return;
-      }
-
-      if (!window.selectedBatchFiles) window.selectedBatchFiles = [];
-
-      var addedCount = 0;
-      for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-
-        // Deduplicate files by name & size within selectedBatchFiles
-        var isDup = window.selectedBatchFiles.some(function(existing) {
-          return existing.name === file.name && existing.size === file.size;
-        });
-        if (isDup) continue;
-
-        var base64 = await readFileAsDataURL(file);
-        var compressed = await compressBase64Image(base64, 1000, 0.75);
-        window.selectedBatchFiles.push({
-          id: "batch_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7) + "_" + i,
-          file: file,
-          size: file.size,
-          base64: compressed,
-          name: file.name
-        });
-        addedCount++;
-      }
-
-      renderMultiPreviewGrid();
-    }
-
-    function readFileAsDataURL(file) {
-      return new Promise(function(resolve) {
-        var reader = new FileReader();
-        reader.onload = function(e) { resolve(e.target.result); };
-        reader.onerror = function() { resolve(""); };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function renderMultiPreviewGrid() {
-      var container = document.getElementById("imagePreviewContainer");
-      var grid = document.getElementById("multiPreviewGrid");
-      var countBadge = document.getElementById("previewCountBadge");
-      var submitBtn = document.getElementById("submitBtn");
-      var pathInput = document.getElementById("imagePathInput");
-
-      if (!container || !grid) return;
-
-      var count = window.selectedBatchFiles ? window.selectedBatchFiles.length : 0;
-
-      if (count === 0) {
-        container.style.display = "none";
-        grid.innerHTML = "";
-        if (pathInput && pathInput.value.startsWith("[Ảnh")) pathInput.value = "";
-        if (submitBtn) submitBtn.innerHTML = "<span>⚡ Lưu Feedback</span>";
-        return;
-      }
-
-      container.style.display = "block";
-      if (countBadge) countBadge.textContent = "Đã chọn: " + count + " ảnh";
-      if (pathInput) pathInput.value = "[Đã chọn " + count + " tệp ảnh]";
-      if (submitBtn) submitBtn.innerHTML = "<span>⚡ Lưu " + count + " Feedback Mới</span>";
-
-      grid.innerHTML = window.selectedBatchFiles.map(function(item, idx) {
-        return '<div style="position: relative; height: 75px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-medium); background: #000;">' +
-          '<img src="' + item.base64 + '" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview" />' +
-          '<button type="button" onclick="removeSinglePreview(\'' + item.id + '\')" style="position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: rgba(239,68,68,0.9); color: #fff; border: none; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Xóa ảnh này">✕</button>' +
-          '<span style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); font-size: 8.5px; color: #fff; padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;">#' + (idx + 1) + ' ' + item.name + '</span>' +
-        '</div>';
-      }).join("");
-    }
-
-    function removeSinglePreview(id) {
-      if (!window.selectedBatchFiles) return;
-      window.selectedBatchFiles = window.selectedBatchFiles.filter(function(f) { return f.id !== id; });
-      renderMultiPreviewGrid();
-    }
-
-    function removeAllPreviewImages() {
-      window.selectedBatchFiles = [];
-      window.currentPreviewBase64 = null;
-      window.selectedRawFile = null;
-      var pathInp = document.getElementById("imagePathInput");
-      if (pathInp) pathInp.value = "";
-      var fileInp = document.getElementById("imageFileInput");
-      if (fileInp) fileInp.value = "";
-      renderMultiPreviewGrid();
-    }
-
-    async function handleAdminFormSubmit(e) {
-      if (e) e.preventDefault();
-
-      var catSelect = document.getElementById("categorySelect");
-      var titleInp = document.getElementById("titleInput");
-      var pathInp = document.getElementById("imagePathInput");
-      var editIdInp = document.getElementById("editItemId");
-
-      var category = catSelect ? catSelect.value : "M4A1 Battle of Faith";
-      var title = titleInp ? titleInp.value.trim() : "";
-      var pathVal = pathInp ? pathInp.value.trim() : "";
-      var editId = editIdInp ? editIdInp.value : "";
-
-      // 1. Edit existing item
-      if (editId && typeof adminItems !== "undefined") {
-        var idx = adminItems.findIndex(function(i) { return i.id === editId; });
-        if (idx !== -1) {
-          var finalPath = pathVal;
-          if (window.selectedBatchFiles && window.selectedBatchFiles.length > 0) {
-            finalPath = window.selectedBatchFiles[0].base64;
-          }
-          adminItems[idx].category = category;
-          adminItems[idx].title = title || (category + " — Feedback");
-          if (finalPath) adminItems[idx].path = finalPath;
-          if (typeof saveCustomItems === "function") saveCustomItems();
-          if (typeof showToast === "function") showToast("Đã cập nhật feedback!");
-          if (typeof resetForm === "function") resetForm();
-          if (typeof renderAllAdmin === "function") renderAllAdmin();
-        }
-        return false;
-      }
-
-      // 2. Batch Upload (1 or more files)
-      if (window.selectedBatchFiles && window.selectedBatchFiles.length > 0) {
-        var batch = window.selectedBatchFiles.slice();
-        var total = batch.length;
-        var newItems = [];
-        var filesToUpload = [];
-
-        if (typeof showToast === "function") showToast("⏳ Đang xử lý và lưu " + total + " feedback mới...");
-
-        batch.forEach(function(item, index) {
-          var displayTitle = total > 1
-            ? (title ? (title + " #" + String(index + 1).padStart(2, "0")) : (category + " — Feedback #" + String(index + 1).padStart(2, "0")))
-            : (title || (category + " — Feedback"));
-
-          var newItem = {
-            id: "custom-" + Date.now() + "-" + index + "-" + Math.random().toString(36).substring(2, 6),
-            path: item.base64,
-            category: category,
-            title: displayTitle,
-            filename: item.name || ("upload-" + Date.now() + "-" + index + ".jpg"),
-            date: new Date().toISOString(),
-            isBase: false
-          };
-
-          newItems.push(newItem);
-          filesToUpload.push(item.file);
-        });
-
-        // Sync with Supabase first to get public URLs
-        if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured() && typeof addMultipleSupabaseFeedbacks === "function") {
-          try {
-            await addMultipleSupabaseFeedbacks(newItems, filesToUpload);
-          } catch (err) {
-            console.warn("Supabase batch upload notice:", err);
-          }
-        }
-
-        // Add to in-memory adminItems
-        if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
-          adminItems.unshift.apply(adminItems, newItems);
-        }
-
-        // Save to LocalStorage
-        try {
-          var rawCustom = localStorage.getItem("custom_feedback_data");
-          var customList = rawCustom ? JSON.parse(rawCustom) : [];
-          customList.unshift.apply(customList, newItems);
-          localStorage.setItem("custom_feedback_data", JSON.stringify(customList));
-        } catch (err) {
-          console.warn("LocalStorage save notice:", err);
-        }
-
-        if (typeof showToast === "function") showToast("⚡ Đã lưu thành công " + total + " feedback mới!");
-        if (typeof resetForm === "function") resetForm();
-        if (typeof renderAllAdmin === "function") renderAllAdmin();
-        return false;
-      }
-
-      // 3. Fallback for manual Path input
-      if (pathVal) {
-        var manualItem = {
-          id: "custom-" + Date.now(),
-          path: pathVal,
-          category: category,
-          title: title || (category + " — Feedback"),
-          filename: pathVal.split("/").pop() || "image.jpg",
-          date: new Date().toISOString(),
-          isBase: false
-        };
-
-        if (typeof adminItems !== "undefined" && Array.isArray(adminItems)) {
-          adminItems.unshift(manualItem);
-        }
-
-        try {
-          var raw = localStorage.getItem("custom_feedback_data");
-          var list = raw ? JSON.parse(raw) : [];
-          list.unshift(manualItem);
-          localStorage.setItem("custom_feedback_data", JSON.stringify(list));
-        } catch (err) {}
-
-        if (typeof showToast === "function") showToast("⚡ Đã lưu feedback mới thành công!");
-        if (typeof resetForm === "function") resetForm();
-        if (typeof renderAllAdmin === "function") renderAllAdmin();
-        return false;
-      }
-
-      if (typeof showToast === "function") showToast("Vui lòng chọn/kéo thả ít nhất 1 ảnh hoặc nhập đường dẫn!");
-      return false;
-    }
-  </script>
 
   <!-- Admin Main Container -->
   <main class="admin-container">
@@ -820,16 +115,13 @@
       <div class="admin-title-group">
         <h1>
           <span>⚡ Bảng Quản Trị Feedback</span>
-          <span
-            style="font-size: 0.9rem; font-weight: 500; color: var(--accent-primary); background: rgba(185, 243, 75, 0.1); padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid rgba(185, 243, 75, 0.3);">
-            V1.0 Live System
-          </span>
+          <span class="admin-version-pill">V2.0 Auth + RLS</span>
         </h1>
-        <p>Thêm mới, chỉnh sửa, xóa và xuất dữ liệu feedback giao dịch khách hàng một cách nhanh chóng.</p>
+        <p>Thêm mới, chỉnh sửa, xóa và đồng bộ feedback giao dịch khách hàng trực tiếp với Supabase.</p>
       </div>
 
-      <div class="admin-header-actions" style="display: flex; gap: 10px;">
-        <button id="exportJsBtn" class="btn btn-outline" style="font-size: 0.85rem; padding: 10px 16px;">
+      <div class="admin-header-actions">
+        <button type="button" id="exportJsBtn" class="btn btn-outline">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -848,7 +140,7 @@
     <!-- Main Content Grid -->
     <div class="admin-content-grid">
 
-      <!-- Panel Add New Feedback Form -->
+      <!-- Panel Add / Edit Feedback Form -->
       <div class="admin-panel">
         <div class="panel-header">
           <h2>
@@ -859,10 +151,10 @@
             </svg>
             <span id="formTitle">Thêm Feedback Mới</span>
           </h2>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Tải ảnh & lưu</span>
+          <span class="panel-subnote">Nén ảnh tự động &amp; lưu</span>
         </div>
 
-        <form id="addFeedbackForm" onsubmit="handleAdminFormSubmit(event); return false;">
+        <form id="addFeedbackForm">
           <input type="hidden" id="editItemId" value="" />
 
           <!-- Category Selection -->
@@ -881,45 +173,39 @@
 
           <!-- Image Upload / Path -->
           <div class="form-group">
-            <label class="form-label">Hình Ảnh Feedback *</label>
+            <label class="form-label" for="imagePathInput">Hình Ảnh Feedback *</label>
 
-            <div class="upload-dropzone" id="dropzone"
-                 onclick="document.getElementById('imageFileInput').click();"
-                 ondragover="event.preventDefault(); event.stopPropagation(); this.classList.add('dragover');"
-                 ondragleave="event.preventDefault(); event.stopPropagation(); this.classList.remove('dragover');">
+            <div class="upload-dropzone" id="dropzone" role="button" tabindex="0" aria-label="Chọn hoặc kéo thả ảnh feedback">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Bấm vào để chọn một hoặc nhiều ảnh (Kéo thả nhiều ảnh cùng lúc)</p>
-              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ chọn cùng lúc nhiều file JPG, PNG, WEBP</p>
+              <p class="upload-dropzone-title">Bấm vào để chọn một hoặc nhiều ảnh (Kéo thả nhiều ảnh cùng lúc)</p>
+              <p class="upload-dropzone-sub">Hỗ trợ nhiều file JPG, PNG, WEBP — tự động nén trước khi tải lên</p>
               <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;" />
             </div>
 
-            <div style="margin-top: 10px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">hoặc nhập
-              Đường Dẫn Ảnh / URL:</div>
+            <div class="upload-or-divider">hoặc nhập Đường Dẫn Ảnh / URL:</div>
 
             <input type="text" id="imagePathInput" class="form-input" style="margin-top: 6px;"
-              placeholder="VD: pictures/ak riu thiêng/merged-image (1).jpg" />
+              placeholder="VD: https://... hoặc pictures/ak riu thiêng/merged-image (1).jpg" />
 
             <!-- Multi Image Preview Grid -->
-            <div id="imagePreviewContainer" style="display: none; margin-top: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span id="previewCountBadge" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); background: rgba(185, 243, 75, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(185, 243, 75, 0.3);">
-                  Đã chọn: 0 ảnh
-                </span>
-                <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 10px; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" onclick="removeAllPreviewImages()">
-                  ✕ Xóa tất cả ảnh
+            <div id="imagePreviewContainer" class="multi-preview-container">
+              <div class="multi-preview-header">
+                <span id="previewCountBadge" class="preview-count-badge">Đã chọn: 0 ảnh</span>
+                <button type="button" id="removeAllPreviewBtn" class="btn btn-outline btn-danger-outline">
+                  ✕ Xóa ảnh đang chọn
                 </button>
               </div>
-              <div id="multiPreviewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 8px; background: rgba(0,0,0,0.35); border-radius: var(--radius-sm); border: 1px solid var(--border-medium);">
+              <div id="multiPreviewGrid" class="multi-preview-grid">
                 <!-- Injected by JS -->
               </div>
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px; margin-top: 24px;">
+          <div class="admin-form-actions">
             <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;" id="submitBtn">
               <span>⚡ Lưu Feedback</span>
             </button>
@@ -943,9 +229,8 @@
             <span>Danh Sách Feedback (<span id="tableItemCount">0</span>)</span>
           </h2>
 
-          <button id="clearAllBtn" class="btn btn-outline"
-            style="font-size: 0.78rem; padding: 6px 12px; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
-            Reset về mặc định
+          <button type="button" id="clearAllBtn" class="btn btn-outline btn-danger-outline">
+            Reset bộ nhớ đệm local
           </button>
         </div>
 
@@ -956,10 +241,10 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" id="adminSearchInput" placeholder="Tìm theo tên file hoặc danh mục..." />
+            <input type="text" id="adminSearchInput" placeholder="Tìm theo tên file, tiêu đề hoặc danh mục..." />
           </div>
 
-          <select id="adminCatFilter" class="form-select" style="width: 200px;">
+          <select id="adminCatFilter" class="form-select" style="width: 220px;">
             <option value="all">Tất cả danh mục</option>
             <!-- Injected by JS -->
           </select>
@@ -988,187 +273,169 @@
 
     </div>
 
+    <!-- Supabase Configuration Panel -->
+    <div class="admin-panel admin-panel-spaced admin-panel-supabase">
+      <div class="panel-header">
+        <h2>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span style="color: var(--accent-cyan);">Cấu Hình Kết Nối Supabase Backend</span>
+        </h2>
+        <span id="supabaseStatusBadge" class="admin-nav-badge">⚡ ĐANG KIỂM TRA...</span>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+        Nhập <strong>Project URL</strong> và <strong>Anon Key</strong> từ Supabase Dashboard của bạn để kích hoạt cơ sở dữ liệu &amp; lưu trữ hình ảnh đám mây trực tiếp.
+      </p>
+
+      <form id="supabaseConfigForm" class="admin-inline-form-grid">
+        <div>
+          <label class="form-label" for="supaUrlInput">Supabase Project URL</label>
+          <input type="text" id="supaUrlInput" class="form-input" placeholder="https://your-project.supabase.co" />
+        </div>
+        <div>
+          <label class="form-label" for="supaKeyInput">Supabase Anon / Publishable Key</label>
+          <input type="text" id="supaKeyInput" class="form-input" placeholder="sb_publishable_... hoặc eyJ..." />
+        </div>
+        <button type="submit" class="btn btn-primary btn-cyan-solid">
+          ⚡ Lưu Cấu Hình
+        </button>
+      </form>
+
+      <div class="supabase-seed-row">
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          💡 <strong>Đồng bộ ảnh cũ:</strong> Nhập feedback có sẵn từ <code>data.js</code> lên Supabase (tự động bỏ qua ảnh đã tồn tại theo <code>path</code>).
+        </div>
+        <button type="button" id="seedSupabaseBtn" class="btn btn-outline btn-cyan-outline">
+          🚀 Nhập Feedback Sẵn Có Vào Supabase
+        </button>
+      </div>
+
+      <!-- SQL Schema Instructions Toggle -->
+      <details class="supabase-sql-details">
+        <summary>
+          📋 Xem SQL Bảo Mật Giai đoạn 2 (supabase/phase2_auth_rls.sql — Siết RLS chỉ cho Admin authenticated)
+        </summary>
+        <pre>-- Xem chi tiết đầy đủ trong supabase/phase1_sync.sql &amp; supabase/phase2_auth_rls.sql:
+-- SELECT giữ công khai cho khách xem; INSERT / UPDATE / DELETE trên categories,
+-- feedbacks và storage.objects chỉ cho role authenticated với email Admin.</pre>
+      </details>
+    </div>
+
+    <!-- Admin Account & Password Settings Card -->
+    <div class="admin-panel admin-panel-spaced admin-panel-security" id="adminSecurityPanel">
+      <div class="panel-header">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span style="color: #ef4444;">Tài Khoản Admin &amp; Đổi Mật Khẩu (Supabase Auth)</span>
+        </h2>
+        <span class="panel-subnote" id="adminSessionStatus">Chưa đăng nhập</span>
+      </div>
+
+      <div class="admin-session-summary">
+        <div>
+          <span style="color: var(--text-muted);">Tài khoản đang đăng nhập:</span>
+          <strong id="adminSessionEmail" style="color: var(--accent-primary); margin-left: 6px;">Chưa đăng nhập</strong>
+        </div>
+        <button type="button" id="securityLogoutBtn" class="btn btn-outline btn-danger-outline" style="padding: 8px 14px; font-size: 0.82rem;">
+          🚪 Đăng xuất phiên hiện tại
+        </button>
+      </div>
+
+      <form id="changePasswordForm" class="admin-inline-form-grid">
+        <div>
+          <label class="form-label" for="newPasswordInput">Mật Khẩu Mới (tối thiểu 8 ký tự) *</label>
+          <input type="password" id="newPasswordInput" class="form-input" minlength="8" placeholder="Nhập mật khẩu mới..." autocomplete="new-password" required />
+        </div>
+        <div>
+          <label class="form-label" for="confirmPasswordInput">Xác Nhận Mật Khẩu Mới *</label>
+          <input type="password" id="confirmPasswordInput" class="form-input" minlength="8" placeholder="Nhập lại mật khẩu mới..." autocomplete="new-password" required />
+        </div>
+        <button type="submit" id="changePasswordBtn" class="btn btn-outline btn-danger-outline" style="height: 44px; padding-inline: 18px;">
+          🔑 Cập Nhật Mật Khẩu
+        </button>
+      </form>
+    </div>
+
     <!-- Database Sync Bar -->
     <div class="db-sync-bar">
       <div class="db-sync-info">
-        <!-- Supabase Configuration Panel -->
-        <div class="admin-panel"
-          style="margin-top: 32px; border-color: rgba(0, 240, 255, 0.3); background: rgba(14, 18, 25, 0.85);">
-          <div class="panel-header">
-            <h2>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-              </svg>
-              <span style="color: var(--accent-cyan);">Cấu Hình Kết Nối Supabase Backend</span>
-            </h2>
-            <span id="supabaseStatusBadge" class="admin-nav-badge"
-              style="background: rgba(0,240,255,0.15); color: var(--accent-cyan); border-color: rgba(0,240,255,0.3);">
-              ⚡ CHƯA KẾT NỐI
-            </span>
-          </div>
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M21 19c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+          </svg>
+          <span>Sao Lưu &amp; Khôi Phục Dữ Liệu JSON</span>
+        </h3>
+        <p>Xuất hoặc nhập lại file JSON dự phòng và file <code>data.js</code> bất kỳ lúc nào.</p>
+      </div>
 
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
-            Nhập <strong>Project URL</strong> và <strong>Anon Key</strong> từ Supabase Dashboard của bạn để kích hoạt cơ
-            sở dữ liệu & lưu trữ hình ảnh đám mây trực tiếp.
-          </p>
+      <div class="db-actions">
+        <button type="button" id="downloadJsonBtn" class="btn btn-outline" style="font-size: 0.85rem;">
+          📥 Tải JSON Backup
+        </button>
 
-          <form id="supabaseConfigForm"
-            style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end;">
-            <div>
-              <label class="form-label">Supabase Project URL</label>
-              <input type="text" id="supaUrlInput" class="form-input" value="https://frnepaasslsbbmxvvhsb.supabase.co"
-                placeholder="https://your-project.supabase.co" />
-            </div>
-            <div>
-              <label class="form-label">Supabase Anon / Publishable Key</label>
-              <input type="text" id="supaKeyInput" class="form-input" value="sb_publishable_V5IaeVV24R1GmZrh09TcsQ_cD95KDn2"
-                placeholder="sb_publishable_... hoặc eyJ..." />
-            </div>
-            <button type="submit" class="btn btn-primary"
-              style="height: 44px; background: var(--accent-cyan); color: #07090e; border: none;">
-              ⚡ Lưu Cấu Hình
-            </button>
-          </form>
+        <label for="importJsonInput" class="btn btn-outline" style="font-size: 0.85rem; cursor: pointer;">
+          📤 Nhập Backup JSON
+        </label>
+        <input type="file" id="importJsonInput" accept=".json" style="display: none;" />
+      </div>
+    </div>
 
-          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(0, 240, 255, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div style="font-size: 0.85rem; color: var(--text-muted);">
-              💡 <strong>Đồng bộ ảnh cũ:</strong> Bấm nút để tự động nhập toàn bộ ảnh feedback có sẵn từ <code>data.js</code> vào CSDL Supabase.
-            </div>
-            <button type="button" id="seedSupabaseBtn" class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan); font-size: 0.85rem; padding: 8px 16px;">
-              🚀 Nhập 100+ Feedback Sẵn Có Vào Supabase
-            </button>
-          </div>
-
-          <!-- SQL Schema Instructions Toggle -->
-          <details
-            style="margin-top: 18px; background: rgba(255,255,255,0.02); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <summary style="cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--accent-cyan);">
-              📋 Xem mã SQL khởi tạo Table & Storage Bucket trên Supabase (Copy & Run in SQL Editor)
-            </summary>
-            <pre
-              style="margin-top: 10px; background: #000; padding: 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-primary); overflow-x: auto; white-space: pre-wrap;">
--- 1. Tạo bảng lưu trữ Feedback
-CREATE TABLE IF NOT EXISTS feedbacks (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT,
-  category TEXT NOT NULL,
-  path TEXT NOT NULL,
-  filename TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- 2. Mở quyền đọc/ghi public
-ALTER TABLE feedbacks ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public Read Feedbacks" ON feedbacks FOR SELECT USING (true);
-CREATE POLICY "Public Insert Feedbacks" ON feedbacks FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public Delete Feedbacks" ON feedbacks FOR DELETE USING (true);
-
--- 3. Tạo Bucket chứa ảnh hình ảnh feedback
-INSERT INTO storage.buckets (id, name, public) VALUES ('feedback-images', 'feedback-images', true) ON CONFLICT DO NOTHING;
-CREATE POLICY "Public Storage Select" ON storage.objects FOR SELECT USING (bucket_id = 'feedback-images');
-CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'feedback-images');
-        </pre>
-          </details>
-        </div>
-
-        <!-- Admin Security PIN Settings Card -->
-        <div class="admin-panel" style="margin-top: 24px; border-color: rgba(239, 68, 68, 0.3); background: rgba(14, 18, 25, 0.85);">
-          <div class="panel-header">
-            <h2>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              <span style="color: #ef4444;">Bảo Mật & Đổi Mã PIN Admin</span>
-            </h2>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Khóa truy cập trái phép</span>
-          </div>
-
-          <form id="changePinForm" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end;">
-            <div>
-              <label class="form-label">Mã PIN Hiện Tại *</label>
-              <input type="password" id="currentPinInput" class="form-input" placeholder="Mã PIN hiện tại..." required />
-            </div>
-            <div>
-              <label class="form-label">Mã PIN Mới *</label>
-              <input type="password" id="newPinInput" class="form-input" placeholder="Nhập mã PIN mới..." required />
-            </div>
-            <button type="submit" class="btn btn-outline" style="height: 44px; border-color: rgba(239,68,68,0.5); color: #ef4444;">
-              🔑 Đổi Mã PIN
-            </button>
-          </form>
-        </div>
-
-        <!-- Database Sync Bar -->
-        <div class="db-sync-bar">
-          <div class="db-sync-info">
-            <h3>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)"
-                stroke-width="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                <path d="M21 19c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-              </svg>
-              <span>Đồng Bộ CSDL & Quản Lý Dữ Liệu System</span>
-            </h3>
-            <p>Mọi thay đổi được lưu tức thì vào LocalStorage của trình duyệt và có thể Xuất/Nhập file CSDL JSON hoặc
-              file `data.js` bất kỳ lúc nào.</p>
-          </div>
-
-          <div class="db-actions">
-            <button id="downloadJsonBtn" class="btn btn-outline" style="font-size: 0.85rem;">
-              📥 Tải JSON Backup
-            </button>
-
-            <label for="importJsonInput" class="btn btn-outline" style="font-size: 0.85rem; cursor: pointer;">
-              📤 Nhập Backup JSON
-            </label>
-            <input type="file" id="importJsonInput" accept=".json" style="display: none;" />
-          </div>
-        </div>
-
-      <!-- Category Management Section -->
-      <div class="admin-panel" style="margin-top: 30px;">
-        <div class="admin-panel-header">
-          <h2 class="admin-panel-title">Quản Lý Danh Mục Vật Phẩm</h2>
-        </div>
-        <form id="categoryManageForm" class="admin-form" onsubmit="handleCategorySubmit(event); return false;" style="margin-bottom: 20px;">
-          <input type="hidden" id="editCatId" value="" />
-          <div class="form-group">
-            <label class="form-label" for="catNameInput">Tên Vũ Khí / Danh Mục *</label>
-            <input type="text" id="catNameInput" class="form-input" placeholder="VD: SCAR-L Máu Lạnh" required />
-          </div>
-          <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-              <label class="form-label" for="catColorInput">Màu Sắc Đại Diện (Mã Hex) *</label>
-              <input type="color" id="catColorInput" class="form-input" style="height: 48px; padding: 0 10px;" value="#ff3366" required />
-            </div>
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-              <label class="form-label" for="catImageInput">Đường Dẫn Ảnh Đại Diện *</label>
-              <input type="text" id="catImageInput" class="form-input" placeholder="VD: pictures/thẻ/scar.jpg" required />
-            </div>
-          </div>
-          <div class="form-actions" style="margin-top: 10px;">
-            <button type="submit" class="btn btn-primary" id="saveCatBtn">Thêm Danh Mục Mới</button>
-            <button type="button" class="btn btn-outline" id="cancelCatEditBtn" style="display: none;">Hủy Sửa</button>
-          </div>
-        </form>
-
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-medium); border-radius: var(--radius-md); overflow: auto;">
-          <table class="admin-table" style="min-width: 500px;">
-            <thead>
-              <tr>
-                <th style="width: 50%;">Tên Danh Mục</th>
-                <th style="width: 30%;">Màu Sắc</th>
-                <th style="width: 20%; text-align: right;">Hành Động</th>
-              </tr>
-            </thead>
-            <tbody id="categoryTableBody">
-              <!-- Injected by JS -->
-            </tbody>
-          </table>
+    <!-- Category Management Section -->
+    <div class="admin-panel admin-panel-spaced">
+      <div class="panel-header">
+        <h2>Quản Lý Danh Mục Vật Phẩm</h2>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <span id="categorySyncBadge" class="admin-nav-badge">💾 LOCAL</span>
+          <button type="button" id="syncCategoriesBtn" class="btn btn-outline btn-cyan-outline">
+            ⬆️ Đồng bộ Danh mục lên Supabase
+          </button>
         </div>
       </div>
+
+      <form id="categoryManageForm" class="admin-form" style="margin-bottom: 20px;">
+        <input type="hidden" id="editCatId" value="" />
+        <div class="form-group">
+          <label class="form-label" for="catNameInput">Tên Vũ Khí / Danh Mục *</label>
+          <input type="text" id="catNameInput" class="form-input" placeholder="VD: SCAR-L Máu Lạnh" required />
+        </div>
+        <div class="admin-form-row">
+          <div class="form-group">
+            <label class="form-label" for="catColorInput">Màu Sắc Đại Diện (Mã Hex) *</label>
+            <input type="color" id="catColorInput" class="form-input" style="height: 48px; padding: 0 10px;" value="#ff3366" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="catImageInput">Đường Dẫn Ảnh Đại Diện *</label>
+            <input type="text" id="catImageInput" class="form-input" placeholder="VD: pictures/thẻ/scar.jpg" required />
+          </div>
+        </div>
+        <div class="admin-form-actions" style="margin-top: 10px;">
+          <button type="submit" class="btn btn-primary" id="saveCatBtn">Thêm Danh Mục Mới</button>
+          <button type="button" class="btn btn-outline" id="cancelCatEditBtn" style="display: none;">Hủy Sửa</button>
+        </div>
+      </form>
+
+      <div class="feedback-table-wrapper">
+        <table class="admin-table" style="min-width: 500px;">
+          <thead>
+            <tr>
+              <th style="width: 50%;">Tên Danh Mục</th>
+              <th style="width: 30%;">Màu Sắc</th>
+              <th style="width: 20%; text-align: right;">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="categoryTableBody">
+            <!-- Injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
   </main>
 
@@ -1185,9 +452,10 @@ CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=3"></script>
-  <script src="data.js?v=3"></script>
-  <script src="admin.js?v=3"></script>
+  <script src="data.js?v=5"></script>
+  <script src="shared.js?v=5"></script>
+  <script src="supabase-config.js?v=5"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 
 </html>

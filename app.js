@@ -4,54 +4,18 @@
  * ==========================================================================
  */
 
+const Shared = window.KhoFeedbackShared;
+
 // 1. Core Category Definitions & Weapon Metadata
-let CATEGORIES = [];
-
-function loadDynamicCategories() {
-  let customCats = [];
-  try {
-    const raw = localStorage.getItem("custom_categories_data");
-    if (raw) customCats = JSON.parse(raw);
-  } catch (e) {}
-
-  if (customCats.length > 0) {
-    CATEGORIES = customCats.map(c => c.name === "Đao Bướm" ? { ...c, name: "Dao Bướm" } : c);
-  } else if (typeof CATEGORY_DATA !== "undefined" && Array.isArray(CATEGORY_DATA)) {
-    CATEGORIES = CATEGORY_DATA;
-  } else {
-    // Fallback if data.js is old
-    CATEGORIES = [
-      { id: "m4a1", name: "M4A1 Battle of Faith", count: 0, accent: "#ff3366", glow: "rgba(255, 51, 102, 0.4)", dim: "rgba(255, 51, 102, 0.12)", image: "pictures/thẻ/M4A1.jpg" },
-      { id: "ak", name: "Ak Riu Thiêng", count: 0, accent: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", dim: "rgba(245, 158, 11, 0.12)", image: "pictures/thẻ/AK Rìu Thiêng.jpg" },
-      { id: "dao", name: "Dao Bướm", count: 0, accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)", dim: "rgba(168, 85, 247, 0.12)", image: "pictures/thẻ/dao bướm.jpg" },
-      { id: "du", name: "Dù Saitama", count: 0, accent: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", dim: "rgba(0, 240, 255, 0.12)", image: "pictures/thẻ/Dù Saitama.jpg" },
-      { id: "m700", name: "M700 ELIZABETH", count: 0, accent: "#10b981", glow: "rgba(16, 185, 129, 0.4)", dim: "rgba(16, 185, 129, 0.12)", image: "pictures/thẻ/M700.jpg" }
-    ];
-  }
-}
-loadDynamicCategories();
+let CATEGORIES = Shared ? Shared.loadLocalCategories() : [];
 
 function normalizeText(str) {
-  if (!str) return "";
-  return str
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "d")
-    .trim();
+  return Shared ? Shared.normalizeText(str) : String(str || "").toLowerCase().trim();
 }
 
 function matchCategory(itemCategory) {
-  if (!itemCategory) return null;
-  const normItem = normalizeText(itemCategory);
-  return CATEGORIES.find(c => {
-    const normName = normalizeText(c.name);
-    const normId = normalizeText(c.id);
-    return normItem === normName || normItem === normId || normItem.includes(normName) || normName.includes(normItem) || normItem.includes(normId);
-  });
+  return Shared ? Shared.matchCategory(CATEGORIES, itemCategory) : null;
 }
-
 
 // Fallback demo images if feedbackData is empty
 const DEMO_IMAGES = [
@@ -76,19 +40,19 @@ let supabaseFeedbacksData = null;
 
 // Helper to get combined feedback data from Supabase, localStorage and data.js
 function getRawFeedbackData() {
-  let baseData = [];
-  if (typeof feedbackData !== "undefined" && Array.isArray(feedbackData)) {
-    baseData = [...feedbackData];
-  }
+  const baseData =
+    typeof feedbackData !== "undefined" && Array.isArray(feedbackData)
+      ? [...feedbackData]
+      : [];
 
-  let supaData = [];
-  if (supabaseFeedbacksData && Array.isArray(supabaseFeedbacksData)) {
-    supaData = [...supabaseFeedbacksData];
-  }
+  const supaData =
+    supabaseFeedbacksData && Array.isArray(supabaseFeedbacksData)
+      ? [...supabaseFeedbacksData]
+      : [];
 
   let customData = [];
   try {
-    const customStr = localStorage.getItem("custom_feedback_data");
+    const customStr = localStorage.getItem(Shared ? Shared.CUSTOM_FEEDBACK_KEY : "custom_feedback_data");
     if (customStr) {
       const parsed = JSON.parse(customStr);
       if (Array.isArray(parsed)) customData = parsed;
@@ -97,56 +61,57 @@ function getRawFeedbackData() {
     console.error("Error reading custom_feedback_data:", e);
   }
 
-  const combined = supaData.length > 0 
-    ? [...supaData, ...customData, ...baseData]
-    : [...customData, ...baseData];
-
-  const uniqueItems = [];
-  const seenPaths = new Set();
-  
-  for (const item of combined) {
-    const p = item.path || item.src || "";
-    if (p && !seenPaths.has(p)) {
-      seenPaths.add(p);
-      uniqueItems.push(item);
-    } else if (!p) {
-      uniqueItems.push(item);
-    }
+  if (Shared) {
+    return Shared.combineFeedbackSources({
+      supaItems: supaData,
+      customItems: customData,
+      baseItems: baseData
+    });
   }
 
-  return uniqueItems;
+  return supaData.length > 0 ? [...supaData, ...customData, ...baseData] : [...customData, ...baseData];
 }
 
 // Async loader if Supabase is connected
 async function loadSupabaseDataIfAvailable() {
-  if (typeof isSupabaseConfigured === "function" && isSupabaseConfigured()) {
-    const data = await fetchSupabaseFeedbacks();
-    if (data && Array.isArray(data) && data.length > 0) {
-      supabaseFeedbacksData = data;
-      initCategories();
-      renderAll();
-    }
+  if (typeof isSupabaseConfigured !== "function" || !isSupabaseConfigured()) return;
+
+  const [catRes, feedbacks] = await Promise.all([
+    typeof fetchSupabaseCategories === "function" ? fetchSupabaseCategories() : Promise.resolve(null),
+    typeof fetchSupabaseFeedbacks === "function" ? fetchSupabaseFeedbacks() : Promise.resolve(null)
+  ]);
+
+  let changed = false;
+
+  if (catRes && catRes.supported && Array.isArray(catRes.data) && catRes.data.length > 0) {
+    CATEGORIES = catRes.data;
+    if (Shared) Shared.saveLocalCategories(CATEGORIES);
+    changed = true;
+  }
+
+  if (feedbacks && Array.isArray(feedbacks)) {
+    supabaseFeedbacksData = feedbacks;
+    changed = true;
+  }
+
+  if (changed) {
+    initCategories();
+    renderAll();
   }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadSupabaseDataIfAvailable();
-});
 
 // 2. Initialize Category Counts and Total
 function initCategories() {
   const combined = getRawFeedbackData();
-  CATEGORIES.forEach(cat => {
-    let matchName = cat.name.toLowerCase();
-    if (cat.id === "ak") matchName = "ak";
-    if (cat.id === "dao") matchName = "dao";
-    if (cat.id === "du") matchName = "dù";
-    if (cat.id === "m4a1") matchName = "m4a1";
-    if (cat.id === "m700") matchName = "m700";
+  CATEGORIES.forEach((cat) => {
+    cat.count = 0;
+  });
 
-    cat.count = combined.filter(item =>
-      (item.category || "").toLowerCase().includes(matchName)
-    ).length;
+  combined.forEach((item) => {
+    const foundCat = matchCategory(item.category);
+    if (foundCat) {
+      foundCat.count++;
+    }
   });
 
   const totalCount = combined.length;
@@ -166,22 +131,26 @@ function getRealItems() {
 
   return combined.map((item, index) => {
     let catId = "other";
-    let catName = item.category || "Khác";
-    
-    const foundCat = matchCategory(catName);
+    const rawCatName = item.category || "Khác";
+    const foundCat = matchCategory(rawCatName);
+    const catName = foundCat ? foundCat.name : rawCatName;
+
     if (foundCat) {
       catId = foundCat.id;
     } else if (item.categoryId) {
       catId = item.categoryId;
     }
 
+    const rawSrc = item.path || item.src || "";
+    const safeSrc = Shared ? Shared.sanitizeImageUrl(rawSrc) : rawSrc;
+
     return {
       id: item.id || `fb-${index}`,
-      src: item.path || item.src,
+      src: safeSrc,
       category: catId,
       categoryName: catName,
       title: item.title || `${catName} — Feedback #${String(combined.length - index).padStart(2, "0")}`,
-      date: item.date || null,
+      date: item.date || item.created_at || null,
       note: item.note || ""
     };
   });
@@ -196,16 +165,17 @@ function getItems() {
   }
 
   if (selectedCategory !== "all") {
-    items = items.filter(item => item.category === selectedCategory);
+    items = items.filter((item) => item.category === selectedCategory);
   }
 
   const searchInput = $("#searchInput");
   const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
   if (keyword) {
-    items = items.filter(item =>
-      item.title.toLowerCase().includes(keyword) ||
-      (item.categoryName && item.categoryName.toLowerCase().includes(keyword))
+    items = items.filter(
+      (item) =>
+        item.title.toLowerCase().includes(keyword) ||
+        (item.categoryName && item.categoryName.toLowerCase().includes(keyword))
     );
   }
 
@@ -217,24 +187,33 @@ function renderCategories() {
   const grid = $("#categoryGrid");
   if (!grid) return;
 
-  grid.innerHTML = CATEGORIES.map((cat, index) => `
-    <article
-      class="category-card ${selectedCategory === cat.id ? "active" : ""}"
-      data-id="${cat.id}"
-      style="--accent:${cat.accent}; --accent-glow:${cat.glow};"
-    >
-      <div class="category-image-wrap">
-        <img src="${cat.image}" alt="${cat.name}" loading="lazy" />
-      </div>
-      <div class="category-meta">
-        <span class="category-service-no">0${index + 1} / SERVICE</span>
-      </div>
-      <h3 class="category-title">${cat.name}</h3>
-      <p class="category-count">${cat.count} FEEDBACK</p>
-    </article>
-  `).join("");
+  const esc = Shared ? Shared.escapeHtml : (s) => String(s || "");
 
-  $$(".category-card").forEach(card => {
+  grid.innerHTML = CATEGORIES.map((cat, index) => {
+    const safeImage = Shared ? Shared.sanitizeImageUrl(cat.image) : cat.image;
+    const safeAccent = /^#[0-9a-fA-F]{6}$/.test(cat.accent || "") ? cat.accent : "#b9f34b";
+    const safeGlow = Shared && Shared.isSafeCssRgbaOrHex
+      ? Shared.isSafeCssRgbaOrHex(cat.glow, "rgba(185, 243, 75, 0.4)")
+      : "rgba(185, 243, 75, 0.4)";
+    return `
+      <article
+        class="category-card ${selectedCategory === cat.id ? "active" : ""}"
+        data-id="${esc(cat.id)}"
+        style="--accent:${safeAccent}; --accent-glow:${safeGlow};"
+      >
+        <div class="category-image-wrap">
+          <img src="${esc(safeImage)}" alt="${esc(cat.name)}" loading="lazy" />
+        </div>
+        <div class="category-meta">
+          <span class="category-service-no">0${index + 1} / SERVICE</span>
+        </div>
+        <h3 class="category-title">${esc(cat.name)}</h3>
+        <p class="category-count">${cat.count} FEEDBACK</p>
+      </article>
+    `;
+  }).join("");
+
+  $$(".category-card").forEach((card) => {
     card.addEventListener("click", () => {
       selectedCategory = card.dataset.id;
       currentPage = 1;
@@ -253,6 +232,8 @@ function renderFilters() {
   const select = $("#categoryFilter");
   const realItems = getRealItems();
   const totalCount = realItems.length > 0 ? realItems.length : DEMO_IMAGES.length;
+  const otherCount = realItems.filter((item) => item.category === "other").length;
+  const esc = Shared ? Shared.escapeHtml : (s) => String(s || "");
 
   if (tabsContainer) {
     let tabsHTML = `
@@ -262,16 +243,27 @@ function renderFilters() {
       </button>
     `;
 
-    tabsHTML += CATEGORIES.map(cat => `
-      <button class="tab-btn ${selectedCategory === cat.id ? "active" : ""}" data-id="${cat.id}">
-        <span>${cat.name}</span>
+    tabsHTML += CATEGORIES.map(
+      (cat) => `
+      <button class="tab-btn ${selectedCategory === cat.id ? "active" : ""}" data-id="${esc(cat.id)}">
+        <span>${esc(cat.name)}</span>
         <span class="tab-count">${cat.count}</span>
       </button>
-    `).join("");
+    `
+    ).join("");
+
+    if (otherCount > 0) {
+      tabsHTML += `
+        <button class="tab-btn ${selectedCategory === "other" ? "active" : ""}" data-id="other">
+          <span>Khác</span>
+          <span class="tab-count">${otherCount}</span>
+        </button>
+      `;
+    }
 
     tabsContainer.innerHTML = tabsHTML;
 
-    $$(".tab-btn").forEach(btn => {
+    $$(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         selectedCategory = btn.dataset.id;
         currentPage = 1;
@@ -283,9 +275,11 @@ function renderFilters() {
   if (select) {
     select.innerHTML = `
       <option value="all">Tất cả dịch vụ (${totalCount})</option>
-      ${CATEGORIES.map(cat => `<option value="${cat.id}">${cat.name} (${cat.count})</option>`).join("")}
+      ${CATEGORIES.map((cat) => `<option value="${esc(cat.id)}">${esc(cat.name)} (${cat.count})</option>`).join("")}
+      ${otherCount > 0 ? `<option value="other">Khác (${otherCount})</option>` : ""}
     `;
-    select.value = selectedCategory;
+    const hasSelected = Array.from(select.options).some((opt) => opt.value === selectedCategory);
+    select.value = hasSelected ? selectedCategory : "all";
   }
 }
 
@@ -297,8 +291,10 @@ function renderGallery() {
   if (titleEl) {
     if (selectedCategory === "all") {
       titleEl.textContent = "Tất cả Feedback Giao Dịch";
+    } else if (selectedCategory === "other") {
+      titleEl.textContent = "Feedback Khác";
     } else {
-      const activeCat = CATEGORIES.find(c => c.id === selectedCategory);
+      const activeCat = CATEGORIES.find((c) => c.id === selectedCategory);
       titleEl.textContent = activeCat ? `Feedback ${activeCat.name}` : "Feedback";
     }
   }
@@ -322,13 +318,15 @@ function renderGallery() {
   }
 
   if (emptyEl) emptyEl.hidden = true;
+  const esc = Shared ? Shared.escapeHtml : (s) => String(s || "");
 
-  galleryEl.innerHTML = paginatedItems.map((item, index) => {
-    const globalIndex = startIndex + index;
-    return `
+  galleryEl.innerHTML = paginatedItems
+    .map((item, index) => {
+      const globalIndex = startIndex + index;
+      return `
       <article class="feedback-card" data-index="${globalIndex}">
         <div class="feedback-thumb-box">
-          <img src="${item.src}" alt="${item.title}" loading="lazy" />
+          <img src="${esc(item.src)}" alt="${esc(item.title)}" loading="lazy" />
           <div class="feedback-overlay">
             <span class="overlay-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -350,10 +348,19 @@ function renderGallery() {
         </div>
       </article>
     `;
-  }).join("");
+    })
+    .join("");
 
-  // Attach Lightbox Triggers
-  $$(".feedback-card").forEach(card => {
+  $$(".feedback-card").forEach((card) => {
+    const img = card.querySelector("img");
+    if (img) {
+      img.addEventListener("error", () => {
+        if (!img.dataset.fallbackApplied) {
+          img.dataset.fallbackApplied = "1";
+          img.src = "assets/demo/feedback-01.png";
+        }
+      });
+    }
     card.addEventListener("click", () => {
       openLightbox(Number(card.dataset.index));
     });
@@ -374,18 +381,16 @@ function renderPagination(totalPages) {
 
   let html = "";
 
-  // Prev Button
   html += `
-    <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""} aria-label="Trang trước">
+    <button class="page-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""} aria-label="Trang trước">
       ‹ Trước
     </button>
   `;
 
-  // Numbered Page Buttons with Smart Ellipsis
   for (let i = 1; i <= totalPages; i++) {
     if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
       html += `
-        <button class="page-btn ${i === currentPage ? "active" : ""}" onclick="changePage(${i})">
+        <button class="page-btn ${i === currentPage ? "active" : ""}" data-page="${i}">
           ${i}
         </button>
       `;
@@ -394,14 +399,20 @@ function renderPagination(totalPages) {
     }
   }
 
-  // Next Button
   html += `
-    <button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""} aria-label="Trang sau">
+    <button class="page-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? "disabled" : ""} aria-label="Trang sau">
       Sau ›
     </button>
   `;
 
   paginationEl.innerHTML = html;
+
+  paginationEl.querySelectorAll(".page-btn[data-page]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetPage = Number(btn.dataset.page);
+      window.changePage(targetPage);
+    });
+  });
 }
 
 // Global page change handler
@@ -495,7 +506,7 @@ function downloadCurrentImage() {
 // 10. Live Number Counter Animation
 function animateCounters() {
   const counters = $$(".counter");
-  counters.forEach(counter => {
+  counters.forEach((counter) => {
     const target = Number(counter.dataset.target) || 0;
     const duration = 1200;
     const startTime = performance.now();
@@ -503,7 +514,7 @@ function animateCounters() {
     function update(currentTime) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease-out cubic
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
       const current = Math.floor(easeProgress * target);
 
       if (target === 100) {
@@ -535,6 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCategories();
   renderAll();
   animateCounters();
+  loadSupabaseDataIfAvailable();
 
   // Search Input Handlers
   const searchInput = $("#searchInput");
@@ -617,37 +629,58 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewport = $("#lightboxViewport");
 
   if (viewport) {
-    viewport.addEventListener("touchstart", (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+    viewport.addEventListener(
+      "touchstart",
+      (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      },
+      { passive: true }
+    );
 
-    viewport.addEventListener("touchend", (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      if (touchStartX - touchEndX > 50) {
-        nextLightboxImage(); // Swiped Left -> Next
-      } else if (touchEndX - touchStartX > 50) {
-        prevLightboxImage(); // Swiped Right -> Prev
-      }
-    }, { passive: true });
+    viewport.addEventListener(
+      "touchend",
+      (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        if (touchStartX - touchEndX > 50) {
+          nextLightboxImage();
+        } else if (touchEndX - touchStartX > 50) {
+          prevLightboxImage();
+        }
+      },
+      { passive: true }
+    );
   }
 
   // Header Scroll Effect & Back-to-Top Button
   const header = $("#header");
   const btnTop = $("#btnBackToTop");
 
-  window.addEventListener("scroll", () => {
-    const scrolled = window.scrollY > 40;
-    if (header) {
-      header.classList.toggle("scrolled", scrolled);
-    }
-    if (btnTop) {
-      btnTop.classList.toggle("show", window.scrollY > 400);
-    }
-  }, { passive: true });
+  window.addEventListener(
+    "scroll",
+    () => {
+      const scrolled = window.scrollY > 40;
+      if (header) {
+        header.classList.toggle("scrolled", scrolled);
+      }
+      if (btnTop) {
+        btnTop.classList.toggle("show", window.scrollY > 400);
+      }
+    },
+    { passive: true }
+  );
 
   if (btnTop) {
     btnTop.addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
+
+  $$("[data-weapon]").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (link.dataset.weapon) {
+        window.filterByWeapon(link.dataset.weapon);
+      }
+    });
+  });
 });

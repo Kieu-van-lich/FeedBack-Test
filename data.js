@@ -45,5 +45,23 @@ const CATEGORY_DATA = [
     glow: "rgba(16, 185, 129, 0.4)",
     dim: "rgba(16, 185, 129, 0.12)",
     image: "pictures/thẻ/M700.jpg"
+  },
+  {
+    id: "spear-blossom",
+    name: "Spear Blossom",
+    count: 0,
+    accent: "#f43f5e",
+    glow: "rgba(244, 63, 94, 0.4)",
+    dim: "rgba(244, 63, 94, 0.12)",
+    image: "pictures/thẻ/Spear Blossom.png"
+  },
+  {
+    id: "dao-sunnet-vice",
+    name: "Dao Bướm - Sunnet Vice",
+    count: 0,
+    accent: "#6366f1",
+    glow: "rgba(99, 102, 241, 0.4)",
+    dim: "rgba(99, 102, 241, 0.12)",
+    image: "pictures/thẻ/Dao Bướm - Hoàng Hôn Tội Lỗi.jpg"
   }
 ];

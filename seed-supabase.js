@@ -1,61 +1,122 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
+const vm = require("vm");
 
-const SUPABASE_URL = "https://frnepaasslsbbmxvvhsb.supabase.co";
-const SUPABASE_KEY = "sb_publishable_V5IaeVV24R1GmZrh09TcsQ_cD95KDn2";
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://frnepaasslsbbmxvvhsb.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_KEY || "sb_publishable_V5IaeVV24R1GmZrh09TcsQ_cD95KDn2";
 
-// Read data.js
 const dataJsPath = path.join(__dirname, "data.js");
 const content = fs.readFileSync(dataJsPath, "utf-8");
-const jsonMatch = content.match(/const feedbackData =\s*(\[[\s\S]*?\]);/);
 
-if (!jsonMatch || !jsonMatch[1]) {
+const sandbox = {};
+vm.runInNewContext(content.replace(/\bconst\b/g, "var"), sandbox);
+
+if (!Array.isArray(sandbox.feedbackData)) {
   console.error("Could not parse feedbackData from data.js");
   process.exit(1);
 }
 
-const rawList = JSON.parse(jsonMatch[1]);
-console.log(`Found ${rawList.length} items in data.js`);
+const rawList = sandbox.feedbackData;
+console.log(`Found ${rawList.length} feedback items in data.js`);
 
-const rows = rawList.map((item, idx) => ({
-  title: `${item.category} — Feedback #${String(idx + 1).padStart(2, "0")}`,
-  category: item.category,
-  path: item.path,
-  filename: item.filename || item.path.split("/").pop()
-}));
-
-// Insert into Supabase REST API
-const url = new URL(`${SUPABASE_URL}/rest/v1/feedbacks`);
-const payload = JSON.stringify(rows);
-
-const options = {
-  hostname: url.hostname,
-  path: url.pathname,
-  method: "POST",
-  headers: {
-    "apikey": SUPABASE_KEY,
-    "Authorization": `Bearer ${SUPABASE_KEY}`,
-    "Content-Type": "application/json",
-    "Prefer": "return=minimal"
-  }
-};
-
-const req = https.request(options, (res) => {
-  let responseData = "";
-  res.on("data", (chunk) => responseData += chunk);
-  res.on("end", () => {
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      console.log(`⚡ Successfully seeded ${rows.length} feedback items into Supabase!`);
-    } else {
-      console.error(`Status: ${res.statusCode}`, responseData);
+function requestJson(method, pathname, body = null, extraHeaders = {}) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(`${SUPABASE_URL}${pathname}`);
+    const payload = body ? JSON.stringify(body) : null;
+    const headers = {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      ...extraHeaders
+    };
+    if (payload) {
+      headers["Content-Type"] = "application/json";
+      headers["Content-Length"] = Buffer.byteLength(payload);
     }
+
+    const req = https.request(
+      {
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method,
+        headers
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => {
+          resolve({ status: res.statusCode, body: data });
+        });
+      }
+    );
+
+    req.on("error", reject);
+    if (payload) req.write(payload);
+    req.end();
   });
-});
+}
 
-req.on("error", (err) => {
-  console.error("Error seeding Supabase:", err);
-});
+(async () => {
+  try {
+    const existingRes = await requestJson("GET", "/rest/v1/feedbacks?select=path");
+    if (existingRes.status < 200 || existingRes.status >= 300) {
+      throw new Error(`Failed reading existing feedbacks (${existingRes.status}): ${existingRes.body}`);
+    }
 
-req.write(payload);
-req.end();
+    const existingPaths = new Set(JSON.parse(existingRes.body).map((r) => r.path));
+    const seen = new Set();
+
+    const rowsToInsert = [];
+    rawList.forEach((item, idx) => {
+      if (!item.path || existingPaths.has(item.path) || seen.has(item.path)) return;
+      seen.add(item.path);
+      rowsToInsert.push({
+        title: `${item.category} — Feedback #${String(idx + 1).padStart(2, "0")}`,
+        category: item.category,
+        path: item.path,
+        filename: item.filename || item.path.split("/").pop()
+      });
+    });
+
+    if (rowsToInsert.length === 0) {
+      console.log("⚡ All items from data.js already exist in Supabase. Nothing to insert.");
+      return;
+    }
+
+    const chunkSize = 50;
+    let totalInserted = 0;
+
+    for (let i = 0; i < rowsToInsert.length; i += chunkSize) {
+      const chunk = rowsToInsert.slice(i, i + chunkSize);
+      const res = await requestJson(
+        "POST",
+        "/rest/v1/feedbacks?on_conflict=path",
+        chunk,
+        { Prefer: "resolution=ignore-duplicates,return=minimal" }
+      );
+
+      if (res.status < 200 || res.status >= 300) {
+        // Fallback when UNIQUE(path) constraint is not created yet
+        if (res.body.includes("no unique or exclusion constraint")) {
+          const fallbackRes = await requestJson("POST", "/rest/v1/feedbacks", chunk, {
+            Prefer: "return=minimal"
+          });
+          if (fallbackRes.status < 200 || fallbackRes.status >= 300) {
+            throw new Error(`Insert failed (${fallbackRes.status}): ${fallbackRes.body}`);
+          }
+        } else {
+          throw new Error(`Upsert failed (${res.status}): ${res.body}`);
+        }
+      }
+
+      totalInserted += chunk.length;
+    }
+
+    console.log(
+      `⚡ Seeded ${totalInserted} new feedback items into Supabase (skipped ${rawList.length - totalInserted} duplicates).`
+    );
+  } catch (err) {
+    console.error("Error seeding Supabase:", err.message);
+    process.exit(1);
+  }
+})();
