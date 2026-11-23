@@ -3,7 +3,7 @@
 > **Workspace:** `d:\Documents\feedback - Copy`  
 > **Ngày hoàn thành:** 23/11/2026  
 > **Tài liệu tham chiếu:** [`Phuong_An_Trien_Khai_Kho_Feedback.md`](../PHUONG_AN/Phuong_An_Trien_Khai_Kho_Feedback.md)  
-> **Trạng thái tổng thể:** Đã **khôi phục đủ 9 bản ghi `Dao Bướm - Sunnet Vice`**, hoàn tất **100% mã nguồn Giai đoạn 2** (loại bỏ hoàn toàn PIN `"090800"`, chuyển sang Supabase Auth thật, xóa sạch inline event handlers, vá chống XSS/CSS-injection/SVG-URL), **áp dụng thành công RLS chặt chẽ lên Supabase live (`frnepaasslsbbmxvvhsb`)**, và **xác minh thực tế** cả chiều chặn ghi ẩn danh (`anon` → `401`/`403`) lẫn luồng CRUD + Auth trên Chrome thật. Chưa đụng code Giai đoạn 3 (UI/UX & SEO) và chưa xóa file Giai đoạn 4.
+> **Trạng thái tổng thể:** Đã **khôi phục đủ 9 bản ghi `Dao Bướm - Sunnet Vice`**, hoàn tất **100% mã nguồn Giai đoạn 2** (loại bỏ hoàn toàn PIN `"090800"`, chuyển sang Supabase Auth thật, xóa sạch inline event handlers, vá chống XSS/CSS-injection/SVG-URL), **áp dụng thành công RLS chặt chẽ lên Supabase live (`frnepaasslsbbmxvvhsb`)**, **đồng bộ lên `origin/main` (commit `bdaed0a`) và deploy hoàn chỉnh lên production Vercel (`https://feedback-hiroki.vercel.app/`)** đã xác minh 7/7 danh mục + đăng nhập Admin thật không lỗi console. Chưa đụng code Giai đoạn 3 (UI/UX & SEO) và chưa xóa file Giai đoạn 4.
 
 ---
 
@@ -73,14 +73,17 @@
 
 ---
 
-## 5. Cảnh Báo Vận Hành Khẩn Cấp & Bước Tiếp Theo
+## 5. Kết Quả Deploy Production & Bước Tiếp Theo
 
-- **Cảnh báo khẩn — Trang Admin trên Production (`https://feedback-hiroki.vercel.app/admin`) hiện đang hỏng phần ghi dữ liệu:** Vì RLS Giai đoạn 2 trên Supabase live đã khóa hoàn toàn quyền `INSERT`/`UPDATE`/`DELETE` của `anon`, trong khi Vercel production vẫn đang chạy commit `origin/main` cũ (dùng PIN `"090800"` và gửi request bằng `anon` key không có JWT Admin), **mọi thao tác Thêm / Sửa / Xóa trên `feedback-hiroki.vercel.app/admin` ngay lúc này sẽ thất bại âm thầm hoặc bị từ chối (`401`/`403`/`[]`)** cho tới khi deploy code Giai đoạn 1+2. Trang chủ công khai (`SELECT`) vẫn hoạt động bình thường. **Cần ưu tiên `git push` / deploy code Giai đoạn 1+2 lên Vercel ngay**, không đợi chốt xong Giai đoạn 3.
-- **Đổi mật khẩu Admin ngay qua `#changePasswordForm`:** Khuyến nghị sử dụng ngay khung **"Tài Khoản Admin & Đổi Mật Khẩu (Supabase Auth)"** vừa tích hợp trong [`admin.html`](../../admin.html) để đổi mật khẩu từng xuất hiện trong lịch sử chat sang mật khẩu mới (tối thiểu 8 ký tự).
+- **Đã đồng bộ `.gitignore`, commit Giai đoạn 1+2 (`bdaed0a`) và deploy lên Vercel Production:**
+  - Trên nền 2 commit ảnh thẻ (`f01e664`, `0f9aca7`), nhánh `main` (`origin/main`) đã có đủ mã nguồn Giai đoạn 1 + Giai đoạn 2 kèm [`.gitignore`](../../.gitignore) loại trừ `backups/`, `New folder/`, `New folder.zip`, `node_modules/`, `.DS_Store`, `Thumbs.db`.
+  - Kiểm tra HTTP trực tiếp trên `https://feedback-hiroki.vercel.app/` & `/admin`: trả `HTTP 200`, nạp `app.js?v=5`, `shared.js?v=5`, có `data-weapon=`, `V2.0 Auth + RLS`, `authLoginForm` và không còn `pinAuthForm`.
+  - Kiểm tra trên trình duyệt Chrome thật (tuân thủ nguyên tắc **chỉ đọc + xác minh đăng nhập, không test Thêm/Sửa/Xóa trên production**):
+    - `https://feedback-hiroki.vercel.app/`: hiển thị đủ **7/7** thẻ danh mục với số lượng khớp dữ liệu thật (`M4A1 Battle of Faith`: 45, `Ak Riu Thiêng`: 30, `Dao Bướm`: 24, `Dù Saitama`: 12, `M700 ELIZABETH`: 27, `Spear Blossom`: 34, `Dao Bướm - Sunnet Vice`: 9), tất cả ảnh thẻ load `complete=true` (`naturalWidth > 0`), **0** lỗi console.
+    - `https://feedback-hiroki.vercel.app/admin`: khóa mặc định (`CHƯA ĐĂNG NHẬP`, `0` dòng), đăng nhập bằng `lichchoilienquan@gmail.com` mở ra giao diện quản trị (`⚡ KẾT NỐI SUPABASE THÀNH CÔNG`, `⚡ ĐÃ ĐỒNG BỘ SUPABASE`, `181` feedback, `7` danh mục), **0** lỗi console.
+- **Đổi mật khẩu Admin ngay qua `#changePasswordForm`:** Khi thao tác trên `https://feedback-hiroki.vercel.app/admin`, dùng ngay khung **"Tài Khoản Admin & Đổi Mật Khẩu (Supabase Auth)"** để đổi mật khẩu từng xuất hiện trong lịch sử chat sang mật khẩu mới (tối thiểu 8 ký tự).
 - **Chuẩn smoke-test Giai đoạn 3 & 4:** Không test chức năng Xóa trực tiếp trên production; mọi smoke-test (đặc biệt thao tác Delete) chạy hoàn toàn ở local/dev với bản ghi test riêng mang tiêu đề `"TEST_DELETE_ME"` và xóa đúng theo UUID đó, trên production chỉ kiểm tra đọc/hiển thị xác nhận cuối sau khi deploy.
-- **Lưu ý trước khi `git push`:** Hai commit mới trên `origin/main` (`f01e664`, `0f9aca7`) chỉ chứa đúng 2 ảnh đại diện thẻ `Spear Blossom.png` (`110.510` bytes) và `Dao Bướm - Hoàng Hôn Tội Lỗi.jpg` (`95.187` bytes) — đã khớp 100% dung lượng với bản cục bộ. Cần tạo `.gitignore` cho `backups/` (hoặc chỉ stage đúng các tệp Giai đoạn 1+2) trước khi push để không đưa [`backups/supabase_backup_20261123.json`](../../backups/supabase_backup_20261123.json) lên GitHub.
 - **Tùy chọn trước/trong Giai đoạn 3 & 4:**
   - Chốt 2 điểm của **Giai đoạn 3** (kênh liên hệ CTA Zalo/FB/Messenger/Telegram và bật lại `#filterTabs` hay bỏ CSS thừa).
   - Rà mắt 8 ảnh `1.jpg`–`8.jpg` (`M4A1 Battle of Faith`) nếu muốn Seed 121 ảnh từ `data.js` lên Supabase.
-  - Thêm `backups/` vào `.gitignore` ở Giai đoạn 4 để không commit dữ liệu backup lên git.
 
