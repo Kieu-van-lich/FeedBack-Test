@@ -3,7 +3,7 @@
 > **Workspace:** `d:\Documents\feedback - Copy`  
 > **Ngày hoàn thành:** 24/11/2026  
 > **Tài liệu tham chiếu:** [`Phuong_An_Trien_Khai_Kho_Feedback.md`](../PHUONG_AN/Phuong_An_Trien_Khai_Kho_Feedback.md)  
-> **Trạng thái tổng thể:** Đã hoàn thành **100% phần việc Giai đoạn 4 tại máy cục bộ** (rà mắt 8 ảnh `M4A1 Battle of Faith`, thiết lập script + chụp backup định kỳ mới nhất, chuyển toàn bộ `128` ảnh trong `pictures/` sang `.webp` giảm **79,1%** dung lượng, kiểm tra chất lượng `128/128` ảnh với `git HEAD` và rà mắt ghép cặp `1:1`, đồng bộ `data.js` / `shared.js` / `seed-supabase.js` / `index.html` / `admin.html`, xóa `server.js`, `package.json`, `netlify.toml`, `_redirects`, `test.js`, `New folder/`, `New folder.zip`, giữ `vercel.json` là config deploy duy nhất) và đã vượt qua toàn bộ bộ test Giai đoạn 1–4. **Chưa `git commit` / `git push` lên production và chưa chạy Seed 121 ảnh lên Supabase.**
+> **Trạng thái tổng thể:** Đã hoàn thành **100% Mốc 1 của Giai đoạn 4** và **đẩy lên production qua commit `8a7b69e` trên `origin/main`** (rà mắt 8 ảnh `M4A1 Battle of Faith`, thiết lập script + chụp backup định kỳ mới nhất, chuyển toàn bộ `128` ảnh trong `pictures/` sang `.webp` giảm **79,1%** dung lượng, kiểm tra chất lượng `128/128` ảnh với `git HEAD` và rà mắt ghép cặp `1:1`, đồng bộ `data.js` / `shared.js` / `seed-supabase.js` / `index.html` / `admin.html`, xóa `server.js`, `package.json`, `netlify.toml`, `_redirects`, `test.js`, `New folder/`, `New folder.zip`, giữ `vercel.json` là config deploy duy nhất) và đã xác minh chỉ-đọc `HTTP 200` (`image/webp`, `?v=7`) + `HTTP 404` file thừa trên `https://feedback-hiroki.vercel.app/`. **Đang giữ riêng Mốc 2 (Seed 121 metadata + cập nhật `categories.image` trên Supabase) chờ xác nhận.**
 
 ---
 
@@ -81,10 +81,27 @@
 
 ---
 
-## 5. Bước Tiếp Theo (Tách 2 Mốc Rõ Ràng)
+## 5. Kết Quả Deploy Production (Mốc 1) & Bước Tiếp Theo (Mốc 2)
 
-1. **Mốc 1 — Xác nhận sau khi xem ảnh WebP → Đẩy Giai đoạn 4 lên Vercel production:** Chờ bro liếc nhanh vài ảnh WebP mẫu để chốt mắt thật, sau đó `git commit` và `git push` toàn bộ thay đổi Giai đoạn 4 lên `origin/main` để Vercel deploy bản static `.webp` (**9,09 MB**) và kiểm tra trang live.
-2. **Mốc 2 — Tách riêng bước Seed `121` ảnh & cập nhật `categories.image` trên Supabase (chỉ làm SAU khi Mốc 1 chạy ổn trên production):**
-   - Chạy lại `node scripts/backup-supabase.js` lấy snapshot mới ngay trước khi ghi DB.
-   - Chạy Seed `121` mục từ `data.js` lên `public.feedbacks` (chỉ chèn `121` dòng metadata trỏ đường dẫn tĩnh `pictures/.../*.webp` trên Vercel, **không** upload thêm 121 file vào Supabase Storage) và cập nhật `7` cột `image` của `public.categories` từ `.jpg`/`.png` sang `.webp`.
+### 5.1. Đẩy mã nguồn Mốc 1 lên Git & Vercel
+- Kiểm tra `git status --short` ngay trước khi stage xác nhận đúng `268` thay đổi (`12` tệp ngoài `pictures/` + `128` ảnh cũ xóa + `128` `.webp` mới), không dính `backups/` hay `New folder*`.
+- Commit Giai đoạn 4: `8a7b69e` (`feat(perf): complete phase 4 webp optimization, repo cleanup and backup cli`) đẩy thành công lên `origin/main` (`f3282d1..8a7b69e`).
+
+### 5.2. Xác minh chỉ-đọc trên `https://feedback-hiroki.vercel.app/` (`READY on attempt 1`, exit code `0`)
+- `https://feedback-hiroki.vercel.app/` → **`HTTP 200`**, nạp đủ `style.css?v=7`, `data.js?v=7`, `shared.js?v=7`, `app.js?v=7`.
+- `https://feedback-hiroki.vercel.app/admin` → **`HTTP 200`**, nạp đủ `admin.css?v=7`, `admin.js?v=7`.
+- `https://feedback-hiroki.vercel.app/data.js?v=7` → **`HTTP 200`**, parse hợp lệ `121` `feedbackData` (`100%` `.webp`) và `7` `CATEGORY_DATA` (`100%` `.webp`).
+- `https://feedback-hiroki.vercel.app/shared.js?v=7` → **`HTTP 200`**, có `function normalizeLocalPicturePath` và `pictures/thẻ/Spear Blossom.webp`.
+- 7 mẫu ảnh `.webp` đại diện đủ cả 6 thư mục (kể cả đường dẫn UTF-8 có dấu tiếng Việt): tất cả trả **`HTTP 200`** với `content-type: image/webp`:
+  - `/pictures/th%E1%BA%BB/Spear%20Blossom.webp` (`46.346` B), `/pictures/th%E1%BA%BB/M4A1.webp` (`35.914` B)
+  - `/pictures/ak%20riu%20thi%C3%AAng/merged-image%20(1).webp` (`40.454` B)
+  - `/pictures/M700%20ELIZABETH/merged-image%20(4).webp` (`46.354` B)
+  - `/pictures/dao%20b%C6%B0%E1%BB%9Bm/photo-collage.png.webp` (`60.322` B)
+  - `/pictures/d%C3%B9%20saitama/merged-image%20(17).webp` (`37.334` B)
+  - `/pictures/m4a1%20Battle%20of%20Faith/merged-image%20(24).webp` (`46.676` B)
+- File thừa đã gỡ (`/server.js`, `/package.json`, `/test.js`) → tất cả trả **`HTTP 404`**.
+
+### 5.3. Bước tiếp theo — Mốc 2 (Chờ xác nhận riêng sau khi Mốc 1 chạy ổn)
+1. Chạy lại `node scripts/backup-supabase.js` lấy snapshot mới ngay trước khi ghi DB.
+2. Chạy Seed `121` mục từ `data.js` vào `public.feedbacks` (chỉ chèn `121` dòng metadata trỏ đường dẫn tĩnh `pictures/.../*.webp` trên Vercel, **không** upload thêm 121 file vào Supabase Storage) và cập nhật `7` cột `image` của `public.categories` từ `.jpg`/`.png` sang `.webp`.
 
