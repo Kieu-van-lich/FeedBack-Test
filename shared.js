@@ -25,7 +25,7 @@
       accent: "#ff3366",
       glow: "rgba(255, 51, 102, 0.4)",
       dim: "rgba(255, 51, 102, 0.12)",
-      image: "pictures/thẻ/M4A1.jpg"
+      image: "pictures/thẻ/M4A1.webp"
     },
     {
       id: "ak",
@@ -34,7 +34,7 @@
       accent: "#f59e0b",
       glow: "rgba(245, 158, 11, 0.4)",
       dim: "rgba(245, 158, 11, 0.12)",
-      image: "pictures/thẻ/AK Rìu Thiêng.jpg"
+      image: "pictures/thẻ/AK Rìu Thiêng.webp"
     },
     {
       id: "dao",
@@ -43,7 +43,7 @@
       accent: "#a855f7",
       glow: "rgba(168, 85, 247, 0.4)",
       dim: "rgba(168, 85, 247, 0.12)",
-      image: "pictures/thẻ/dao bướm.jpg"
+      image: "pictures/thẻ/dao bướm.webp"
     },
     {
       id: "du",
@@ -52,7 +52,7 @@
       accent: "#00f0ff",
       glow: "rgba(0, 240, 255, 0.4)",
       dim: "rgba(0, 240, 255, 0.12)",
-      image: "pictures/thẻ/Dù Saitama.jpg"
+      image: "pictures/thẻ/Dù Saitama.webp"
     },
     {
       id: "m700",
@@ -61,7 +61,7 @@
       accent: "#10b981",
       glow: "rgba(16, 185, 129, 0.4)",
       dim: "rgba(16, 185, 129, 0.12)",
-      image: "pictures/thẻ/M700.jpg"
+      image: "pictures/thẻ/M700.webp"
     },
     {
       id: "spear-blossom",
@@ -70,7 +70,7 @@
       accent: "#f43f5e",
       glow: "rgba(244, 63, 94, 0.4)",
       dim: "rgba(244, 63, 94, 0.12)",
-      image: "pictures/thẻ/Spear Blossom.png"
+      image: "pictures/thẻ/Spear Blossom.webp"
     },
     {
       id: "dao-sunnet-vice",
@@ -79,7 +79,7 @@
       accent: "#6366f1",
       glow: "rgba(99, 102, 241, 0.4)",
       dim: "rgba(99, 102, 241, 0.12)",
-      image: "pictures/thẻ/Dao Bướm - Hoàng Hôn Tội Lỗi.jpg"
+      image: "pictures/thẻ/Dao Bướm - Hoàng Hôn Tội Lỗi.webp"
     }
   ];
 
@@ -117,6 +117,13 @@
 
   function sanitizeImageUrl(url, fallback = "assets/demo/feedback-01.png") {
     return isSafeImageUrl(url) ? url.trim() : fallback;
+  }
+
+  function normalizeLocalPicturePath(url) {
+    if (typeof url !== "string") return url;
+    const trimmed = url.trim();
+    if (!trimmed.startsWith("pictures/")) return trimmed;
+    return trimmed.replace(/\.(jpe?g|png)$/i, ".webp");
   }
 
   function normalizeText(str) {
@@ -158,7 +165,7 @@
       accent: colors.accent,
       glow: (cat && cat.glow) || colors.glow,
       dim: (cat && cat.dim) || colors.dim,
-      image: sanitizeImageUrl(cat && cat.image, "assets/demo/feedback-01.png"),
+      image: sanitizeImageUrl(normalizeLocalPicturePath(cat && cat.image), "assets/demo/feedback-01.png"),
       sort_order: typeof cat?.sort_order === "number" ? cat.sort_order : index
     };
   }
@@ -249,7 +256,11 @@
       const raw = localStorage.getItem(DELETED_BASE_PATHS_KEY);
       if (!raw) return new Set();
       const parsed = JSON.parse(raw);
-      return new Set(Array.isArray(parsed) ? parsed : []);
+      return new Set(
+        Array.isArray(parsed)
+          ? parsed.filter((p) => typeof p === "string").map((p) => normalizeLocalPicturePath(p))
+          : []
+      );
     } catch (e) {
       return new Set();
     }
@@ -258,7 +269,7 @@
   function addDeletedBasePath(path) {
     if (!path) return;
     const set = getDeletedBasePaths();
-    set.add(path);
+    set.add(normalizeLocalPicturePath(path));
     try {
       localStorage.setItem(DELETED_BASE_PATHS_KEY, JSON.stringify(Array.from(set)));
     } catch (e) {
@@ -284,13 +295,29 @@
     return supaItems.some((item) => typeof item?.path === "string" && item.path.startsWith("pictures/"));
   }
 
+  function normalizeFeedbackSourceItem(item) {
+    if (!item || typeof item !== "object") return item;
+    const rawPath = item.path || "";
+    const rawSrc = item.src || "";
+    const nextPath = normalizeLocalPicturePath(rawPath);
+    const nextSrc = normalizeLocalPicturePath(rawSrc);
+    if (nextPath === rawPath && nextSrc === rawSrc) return item;
+    const updated = { ...item };
+    if (rawPath) updated.path = nextPath;
+    if (rawSrc) updated.src = nextSrc;
+    return updated;
+  }
+
   function combineFeedbackSources({ supaItems = [], customItems = [], baseItems = [] }) {
     const deletedBasePaths = getDeletedBasePaths();
     const seeded = hasSeededPathsInSupabase(supaItems);
 
     const effectiveBase = seeded
       ? []
-      : baseItems.filter((item) => !item?.path || !deletedBasePaths.has(item.path));
+      : baseItems.filter((item) => {
+          const normPath = normalizeLocalPicturePath(item?.path);
+          return !normPath || !deletedBasePaths.has(normPath);
+        });
 
     const combined =
       supaItems.length > 0
@@ -300,7 +327,8 @@
     const uniqueItems = [];
     const seenPaths = new Set();
 
-    for (const item of combined) {
+    for (const rawItem of combined) {
+      const item = normalizeFeedbackSourceItem(rawItem);
       const p = item?.path || item?.src || "";
       if (p) {
         if (!seenPaths.has(p)) {
@@ -325,6 +353,7 @@
     isSafeImageUrl,
     isSafeCssRgbaOrHex,
     sanitizeImageUrl,
+    normalizeLocalPicturePath,
     normalizeText,
     hexToCategoryColors,
     normalizeCategoryRecord,

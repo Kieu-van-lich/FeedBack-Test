@@ -4,7 +4,34 @@ const https = require("https");
 const vm = require("vm");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://frnepaasslsbbmxvvhsb.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_KEY || "sb_publishable_V5IaeVV24R1GmZrh09TcsQ_cD95KDn2";
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_KEY ||
+  "sb_publishable_V5IaeVV24R1GmZrh09TcsQ_cD95KDn2";
+const SUPABASE_AUTH_TOKEN =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ACCESS_TOKEN ||
+  SUPABASE_KEY;
+
+const CATEGORY_DISPLAY_MAP = {
+  "ak riu thieng": "AK Rìu Thiêng",
+  "dao buom": "Dao Bướm",
+  "du saitama": "Dù Saitama",
+  "m4a1 battle of faith": "M4A1 Battle of Faith",
+  "m700 elizabeth": "M700 ELIZABETH"
+};
+
+function normalizeCategoryName(raw) {
+  if (!raw) return "Giao dịch chung";
+  const key = String(raw)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/\s+/g, " ")
+    .trim();
+  return CATEGORY_DISPLAY_MAP[key] || String(raw).trim();
+}
 
 const dataJsPath = path.join(__dirname, "data.js");
 const content = fs.readFileSync(dataJsPath, "utf-8");
@@ -26,7 +53,7 @@ function requestJson(method, pathname, body = null, extraHeaders = {}) {
     const payload = body ? JSON.stringify(body) : null;
     const headers = {
       apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Authorization: `Bearer ${SUPABASE_AUTH_TOKEN}`,
       ...extraHeaders
     };
     if (payload) {
@@ -70,9 +97,10 @@ function requestJson(method, pathname, body = null, extraHeaders = {}) {
     rawList.forEach((item, idx) => {
       if (!item.path || existingPaths.has(item.path) || seen.has(item.path)) return;
       seen.add(item.path);
+      const displayCategory = normalizeCategoryName(item.category);
       rowsToInsert.push({
-        title: `${item.category} — Feedback #${String(idx + 1).padStart(2, "0")}`,
-        category: item.category,
+        title: `${displayCategory} — Feedback #${String(idx + 1).padStart(2, "0")}`,
+        category: displayCategory,
         path: item.path,
         filename: item.filename || item.path.split("/").pop()
       });
@@ -96,6 +124,11 @@ function requestJson(method, pathname, body = null, extraHeaders = {}) {
       );
 
       if (res.status < 200 || res.status >= 300) {
+        if (res.status === 401 || res.status === 403 || res.body.includes("42501")) {
+          throw new Error(
+            `RLS blocked anonymous seed (${res.status}). Pass SUPABASE_ACCESS_TOKEN (Admin JWT) or SUPABASE_SERVICE_ROLE_KEY, or use the Seed button in admin.html after logging in.`
+          );
+        }
         // Fallback when UNIQUE(path) constraint is not created yet
         if (res.body.includes("no unique or exclusion constraint")) {
           const fallbackRes = await requestJson("POST", "/rest/v1/feedbacks", chunk, {
