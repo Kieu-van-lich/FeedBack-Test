@@ -3,7 +3,7 @@
 > **Workspace:** `d:\Documents\feedback - Copy`  
 > **Ngày hoàn thành:** 24/11/2026  
 > **Tài liệu tham chiếu:** [`Phuong_An_Trien_Khai_Kho_Feedback.md`](../PHUONG_AN/Phuong_An_Trien_Khai_Kho_Feedback.md)  
-> **Trạng thái tổng thể:** Đã hoàn thành **100% mã nguồn Giai đoạn 3** ở máy cục bộ (bao gồm gắn nút CTA Facebook thật `https://www.facebook.com/lich.kieuvan.56`, bật lại `#filterTabs`, sửa bộ đếm hero `#totalFeedback`/`#totalServices`, tìm kiếm tiếng Việt không dấu, nâng cấp Lightbox kéo-pan & tải Blob, menu hamburger mobile, chuẩn hóa `"AK Rìu Thiêng"`, Favicon + SEO/OG + `noindex` Admin, và màn che UX `"🔒 Khóa nhanh"`), **đã kiểm tra đủ cả script cô lập lẫn trình duyệt Chrome thật ở Desktop (`1536px`) và Mobile (`375×812`)**. Chưa `git commit` / `git push` lên production và chưa xóa file Giai đoạn 4.
+> **Trạng thái tổng thể:** Đã hoàn thành **100% Giai đoạn 3** và **đẩy lên production qua commit `4618a26` trên `origin/main`** (bao gồm gắn nút CTA Facebook thật `https://www.facebook.com/lich.kieuvan.56`, bật lại `#filterTabs`, sửa bộ đếm hero `#totalFeedback`/`#totalServices`, tìm kiếm tiếng Việt không dấu, nâng cấp Lightbox kéo-pan & tải Blob, menu hamburger mobile, chuẩn hóa `"AK Rìu Thiêng"`, Favicon + SEO/OG + `noindex` Admin, và màn che UX `"🔒 Khóa nhanh"`). Đã kiểm tra đủ ở local (script cô lập + Chrome Desktop `1536px` & Mobile `375×812`) và xác nhận chỉ-đọc qua HTTP trên Vercel production (`HTTP 200` toàn bộ HTML/JS/CSS/SVG bản `v=6`). Chưa đụng vào các hạng mục Giai đoạn 4.
 
 ---
 
@@ -48,9 +48,22 @@
 
 ---
 
-## 4. Bước Tiếp Theo (Chờ Xác Nhận Trước Khi Đẩy Lên Production)
+## 4. Kết Quả Deploy Production & Bước Tiếp Theo
 
-1. Xác nhận cho phép `git commit` và `git push` toàn bộ thay đổi **Giai đoạn 3** lên `origin/main` để Vercel deploy bản mới.
-2. Sau khi xong việc test trên trình duyệt, nhớ bỏ tích **`Allow remote debugging for this browser instance`** tại tab `chrome://inspect/#remote-debugging` để đóng cổng debug cục bộ.
-3. Bước cuối sau Giai đoạn 3 sẽ là **Giai đoạn 4 (Tối ưu ảnh `pictures/` + `.gitignore`/vệ sinh `server.js`, `netlify.toml`, `_redirects`, `New folder/`)**.
+### 4.1. Đẩy mã nguồn lên Git & Vercel
+- Kiểm tra `git status -sb` trước khi stage xác nhận chỉ có đúng 10 file thuộc Giai đoạn 3 (`admin.css`, `admin.html`, `admin.js`, `app.js`, `data.js`, `index.html`, `shared.js`, `style.css`, `assets/favicon.svg`, `plan/BAO_CAO/BAO_CAO_GIAI_DOAN_3.md`), không dính `backups/` hay `New folder*`.
+- Commit mã nguồn Giai đoạn 3: `4618a26` (`feat(ui): complete phase 3 ui/ux, lightbox, mobile menu, seo and facebook cta`) đẩy thành công lên `origin/main` (`7582e0f..4618a26`).
+
+### 4.2. Xác minh chỉ-đọc trên `https://feedback-hiroki.vercel.app/`
+Kiểm tra bằng `fetch()` (`cache: 'no-store'`, chỉ đọc, không đụng Thêm/Sửa/Xóa dữ liệu thật):
+- `https://feedback-hiroki.vercel.app/` → **`HTTP 200`**, có `app.js?v=6`, `id="filterTabs"`, `id="mobileMenuBtn"`, `id="floatingCtaGroup"`, `id="totalServices"`, `assets/favicon.svg`, `og:title`.
+- `https://feedback-hiroki.vercel.app/admin` → **`HTTP 200`**, có `V3.0 Auth + RLS + UX`, `noindex, nofollow`, `id="quickLockBtn"`, `admin.js?v=6`.
+- `https://feedback-hiroki.vercel.app/shared.js?v=6` → **`HTTP 200`**, có link Facebook `https://www.facebook.com/lich.kieuvan.56` và nhãn `AK Rìu Thiêng`.
+- `https://feedback-hiroki.vercel.app/app.js?v=6` → **`HTTP 200`**, có `normalizeText`, `renderFloatingCta`, `downloadCurrentImage`.
+- `https://feedback-hiroki.vercel.app/style.css?v=6` → **`HTTP 200`**, có `.floating-cta-group`.
+- `https://feedback-hiroki.vercel.app/assets/favicon.svg` → **`HTTP 200`**, `346` bytes SVG hợp lệ.
+
+### 4.3. Bước tiếp theo
+1. Kiểm tra lại trên trình duyệt thật ở `https://feedback-hiroki.vercel.app/` (nếu cần xem trực quan) và bảo đảm đã tắt tích **`Allow remote debugging for this browser instance`** tại `chrome://inspect/#remote-debugging`.
+2. Khi sẵn sàng, chuyển sang **Giai đoạn 4** (tối ưu ảnh `pictures/` + dọn file thừa `server.js`, `netlify.toml`, `_redirects`, `New folder/`).
 
