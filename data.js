@@ -12,7 +12,7 @@ const CATEGORY_DATA = [
   },
   {
     id: "ak",
-    name: "Ak Riu Thiêng",
+    name: "AK Rìu Thiêng",
     count: 0,
     accent: "#f59e0b",
     glow: "rgba(245, 158, 11, 0.4)",

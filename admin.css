@@ -46,6 +46,18 @@
   border: 1px solid var(--border-medium);
 }
 
+.admin-quicklock-btn {
+  background: rgba(0, 240, 255, 0.12);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  cursor: pointer;
+}
+
+.admin-quicklock-btn:hover {
+  background: rgba(0, 240, 255, 0.22);
+  border-color: var(--accent-cyan);
+}
+
 .admin-container {
   width: min(1300px, calc(100% - 40px));
   margin-inline: auto;
@@ -615,6 +627,10 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+
+#quickLockOverlay[hidden] {
+  display: none !important;
 }
 
 .admin-lock-card {

@@ -10,6 +10,13 @@
   const CUSTOM_FEEDBACK_KEY = "custom_feedback_data";
   const DELETED_BASE_PATHS_KEY = "deleted_base_feedback_paths";
 
+  const CONTACT_CHANNELS = [
+    { id: "zalo", label: "Zalo", url: "", accent: "#0068ff" },
+    { id: "messenger", label: "Messenger", url: "", accent: "#0084ff" },
+    { id: "facebook", label: "Facebook", url: "https://www.facebook.com/lich.kieuvan.56", accent: "#1877f2" },
+    { id: "telegram", label: "Telegram", url: "", accent: "#229ed9" }
+  ];
+
   const FALLBACK_CATEGORIES = [
     {
       id: "m4a1",
@@ -22,7 +29,7 @@
     },
     {
       id: "ak",
-      name: "Ak Riu Thiêng",
+      name: "AK Rìu Thiêng",
       count: 0,
       accent: "#f59e0b",
       glow: "rgba(245, 158, 11, 0.4)",
@@ -141,7 +148,9 @@
   function normalizeCategoryRecord(cat, index = 0) {
     const colors = hexToCategoryColors(cat && cat.accent);
     const rawName = (cat && cat.name ? String(cat.name) : "Danh mục").trim();
-    const fixedName = rawName === "Đao Bướm" ? "Dao Bướm" : rawName;
+    let fixedName = rawName;
+    if (rawName === "Đao Bướm") fixedName = "Dao Bướm";
+    else if (/^ak riu thiêng$/i.test(rawName)) fixedName = "AK Rìu Thiêng";
     return {
       id: (cat && cat.id ? String(cat.id) : `cat_${index}`).trim(),
       name: fixedName,
@@ -310,6 +319,7 @@
     CUSTOM_CATEGORIES_KEY,
     CUSTOM_FEEDBACK_KEY,
     DELETED_BASE_PATHS_KEY,
+    CONTACT_CHANNELS,
     FALLBACK_CATEGORIES,
     escapeHtml,
     isSafeImageUrl,

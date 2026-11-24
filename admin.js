@@ -108,6 +108,7 @@ function applyAuthSessionUI(session) {
 // 1. Initialize Admin Panel
 document.addEventListener("DOMContentLoaded", async () => {
   setupAdminAuth();
+  setupQuickLock();
   setupSupabaseUI();
   setupFormListeners();
   setupCategoryListeners();
@@ -168,6 +169,11 @@ function setupAdminAuth() {
   }
 
   async function handleLogoutClick() {
+    try {
+      sessionStorage.removeItem("admin_quick_locked");
+    } catch (e) {}
+    const quickOverlay = $("#quickLockOverlay");
+    if (quickOverlay) quickOverlay.hidden = true;
     try {
       if (typeof signOutSupabaseAdmin === "function") {
         await signOutSupabaseAdmin();
@@ -233,6 +239,130 @@ function setupAdminAuth() {
       }
     });
   }
+}
+
+// Pure UX Quick-Lock Curtain (does NOT replace Supabase Auth/RLS)
+function setupQuickLock() {
+  const QUICK_CODE_KEY = "admin_quick_lock_code";
+  const QUICK_STATE_KEY = "admin_quick_locked";
+  const quickBtn = $("#quickLockBtn");
+  const overlay = $("#quickLockOverlay");
+  const titleEl = $("#quickLockTitle");
+  const hintEl = $("#quickLockHint");
+  const form = $("#quickLockForm");
+  const codeInput = $("#quickLockCodeInput");
+  const submitBtn = $("#quickLockSubmitBtn");
+  const errorEl = $("#quickLockError");
+  const quickLogoutBtn = $("#quickLockLogoutBtn");
+  let mode = "unlock";
+
+  function openQuickOverlay(nextMode) {
+    if (!overlay || !currentAdminSession) return;
+    mode = nextMode;
+    if (errorEl) errorEl.style.display = "none";
+    if (codeInput) codeInput.value = "";
+
+    if (mode === "set") {
+      if (titleEl) titleEl.textContent = "Đặt Mã Khóa Nhanh Cục Bộ";
+      if (hintEl) {
+        hintEl.textContent = "Thiết lập mã ngắn (≥ 4 ký tự) lưu trên trình duyệt này để che nhanh màn hình khi rời máy.";
+      }
+      if (submitBtn) submitBtn.innerHTML = "<span>🔒 Lưu Mã &amp; Khóa Màn Hình</span>";
+    } else {
+      if (titleEl) titleEl.textContent = "Màn Hình Đã Khóa Tạm";
+      if (hintEl) {
+        hintEl.textContent = "Nhập mã khóa nhanh cục bộ để tiếp tục làm việc (phiên Supabase Auth vẫn giữ nguyên).";
+      }
+      if (submitBtn) submitBtn.innerHTML = "<span>🔓 Mở Khóa Màn Hình</span>";
+    }
+
+    overlay.hidden = false;
+    if (codeInput) setTimeout(() => codeInput.focus(), 50);
+  }
+
+  function closeQuickOverlay() {
+    if (overlay) overlay.hidden = true;
+    try {
+      sessionStorage.removeItem(QUICK_STATE_KEY);
+    } catch (e) {}
+    if (codeInput) codeInput.value = "";
+    if (errorEl) errorEl.style.display = "none";
+  }
+
+  if (quickBtn) {
+    quickBtn.addEventListener("click", () => {
+      if (!currentAdminSession) {
+        showToast("⚠️ Vui lòng đăng nhập Supabase Auth trước!");
+        return;
+      }
+      const savedCode = localStorage.getItem(QUICK_CODE_KEY);
+      if (!savedCode) {
+        openQuickOverlay("set");
+      } else {
+        try {
+          sessionStorage.setItem(QUICK_STATE_KEY, "1");
+        } catch (e) {}
+        openQuickOverlay("unlock");
+      }
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const entered = codeInput ? codeInput.value.trim() : "";
+      if (mode === "set") {
+        if (entered.length < 4) {
+          if (errorEl) {
+            errorEl.textContent = "❌ Mã khóa nhanh phải có ít nhất 4 ký tự.";
+            errorEl.style.display = "block";
+          }
+          return;
+        }
+        localStorage.setItem(QUICK_CODE_KEY, entered);
+        try {
+          sessionStorage.setItem(QUICK_STATE_KEY, "1");
+        } catch (e) {}
+        openQuickOverlay("unlock");
+        showToast("🔒 Đã thiết lập mã khóa nhanh & che màn hình!");
+        return;
+      }
+
+      const savedCode = localStorage.getItem(QUICK_CODE_KEY);
+      if (savedCode && entered === savedCode) {
+        closeQuickOverlay();
+        showToast("🔓 Đã mở khóa màn hình!");
+      } else {
+        if (errorEl) {
+          errorEl.textContent = "❌ Mã khóa nhanh chưa đúng!";
+          errorEl.style.display = "block";
+        }
+        if (codeInput) {
+          codeInput.value = "";
+          codeInput.focus();
+        }
+      }
+    });
+  }
+
+  if (quickLogoutBtn) {
+    quickLogoutBtn.addEventListener("click", () => {
+      const logoutBtn = $("#logoutAdminBtn");
+      if (logoutBtn) logoutBtn.click();
+    });
+  }
+
+  try {
+    if (sessionStorage.getItem(QUICK_STATE_KEY) === "1" && localStorage.getItem(QUICK_CODE_KEY)) {
+      const waitCheck = setInterval(() => {
+        if (currentAdminSession) {
+          clearInterval(waitCheck);
+          openQuickOverlay("unlock");
+        }
+      }, 150);
+      setTimeout(() => clearInterval(waitCheck), 5000);
+    }
+  } catch (e) {}
 }
 
 // 2. Load Categories from Supabase (or fallback local/data.js)

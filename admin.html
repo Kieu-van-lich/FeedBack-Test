@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#07090e">
   <title>Bảng Quản Trị Admin | Kho Feedback Uy Tín</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,8 +17,8 @@
     rel="stylesheet">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=5">
-  <link rel="stylesheet" href="admin.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="admin.css?v=6">
 </head>
 
 <body class="admin-body">
@@ -47,6 +50,14 @@
       </div>
 
       <div class="nav-right admin-nav-actions">
+        <button type="button" id="quickLockBtn" class="nav-button admin-quicklock-btn" title="Che tạm màn hình khi rời máy (giữ nguyên phiên Supabase)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>🔒 Khóa nhanh</span>
+        </button>
+
         <button type="button" id="logoutAdminBtn" class="nav-button admin-lock-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -107,6 +118,41 @@
     </div>
   </div>
 
+  <!-- ADMIN QUICK-LOCK PRIVACY OVERLAY (UX ONLY - SUPABASE SESSION REMAINS ACTIVE) -->
+  <div id="quickLockOverlay" class="admin-lock-overlay" hidden>
+    <div class="admin-lock-card">
+      <div class="admin-lock-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+
+      <h2 id="quickLockTitle" style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Màn Hình Đã Khóa Tạm</h2>
+      <p id="quickLockHint" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">Nhập mã khóa nhanh cục bộ để tiếp tục làm việc (phiên Supabase Auth vẫn giữ nguyên).</p>
+
+      <form id="quickLockForm" class="admin-auth-form">
+        <div class="admin-auth-field">
+          <label class="admin-auth-label" for="quickLockCodeInput">Mã khóa nhanh (tối thiểu 4 ký tự) *</label>
+          <input type="password" id="quickLockCodeInput" class="form-input admin-auth-input" minlength="4" maxlength="32" placeholder="Nhập mã khóa nhanh..." autocomplete="off" required />
+        </div>
+
+        <button type="submit" id="quickLockSubmitBtn" class="btn btn-primary" style="width: 100%; justify-content: center; height: 46px; font-size: 0.95rem;">
+          <span>🔓 Mở Khóa Màn Hình</span>
+        </button>
+      </form>
+
+      <div id="quickLockError" class="admin-auth-error" role="alert"></div>
+
+      <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+        <button type="button" id="quickLockLogoutBtn" class="btn btn-outline btn-danger-outline" style="padding: 8px 12px; font-size: 0.8rem;">
+          🚪 Đăng xuất hẳn
+        </button>
+        <a href="index.html" style="font-size: 0.82rem; color: var(--text-muted); text-decoration: underline;">Về trang chủ</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Admin Main Container -->
   <main class="admin-container">
 
@@ -115,7 +161,7 @@
       <div class="admin-title-group">
         <h1>
           <span>⚡ Bảng Quản Trị Feedback</span>
-          <span class="admin-version-pill">V2.0 Auth + RLS</span>
+          <span class="admin-version-pill">V3.0 Auth + RLS + UX</span>
         </h1>
         <p>Thêm mới, chỉnh sửa, xóa và đồng bộ feedback giao dịch khách hàng trực tiếp với Supabase.</p>
       </div>
@@ -452,10 +498,10 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="data.js?v=5"></script>
-  <script src="shared.js?v=5"></script>
-  <script src="supabase-config.js?v=5"></script>
-  <script src="admin.js?v=5"></script>
+  <script src="data.js?v=6"></script>
+  <script src="shared.js?v=6"></script>
+  <script src="supabase-config.js?v=6"></script>
+  <script src="admin.js?v=6"></script>
 </body>
 
 </html>
